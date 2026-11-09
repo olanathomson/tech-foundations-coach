@@ -1,1 +1,1 @@
-# tech-foundation-coach
+# tech-foundations-coach
