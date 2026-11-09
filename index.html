@@ -1,0 +1,1469 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tech Foundations Coach</title>
+</head>
+<body>
+<!-- Tech Foundations Coach: Google Sites embed. Paste this entire file into Embed code. -->
+<!--
+  REVISION NOTES (November 2026). Search for "FIX" to find every change.
+  FIX 1  Neutral diagnostic options: buttons no longer carry the reasoning.
+  FIX 2  Gentler escalation: a correct first answer leads to a follow-up question,
+         and the level-3 scaffold no longer states the full fix.
+  FIX 3  Stronger transfer checks: a third distractor on two-option checks,
+         and check options are shuffled so the answer is not always first.
+  FIX 4  Reflect step: a short reflection after a resolved session, saved to the notes.
+  FIX 5  Reply buttons match the current question (nudgeOptions), with a typed-answer
+         fallback and a matching clarification prompt.
+  FIX 6  One scrollbar: the conversation grows with the page instead of scrolling inside it.
+  FIX 7  No duplicate "Still stuck" / "I fixed it": footer buttons hide when a reply button offers them.
+  FIX 8  Session notes name the support level (e.g. "3 · Scaffold").
+  FIX 9  Clipboard: no code in this file writes to the clipboard; the behaviour comes from the
+         Google Sites embed wrapper, so no change is needed here.
+-->
+<style>
+/* Indigo + sky palette. All colour values are collected here for easy editing. */
+:root{
+  --ink:#202b4a;
+  --muted:#5c6882;
+  --accent:#4f46d8;
+  --accent-dark:#4037b6;
+  --border:#dce3f2;
+  --border-strong:#b9c4dd;
+  --accent-soft:#eef0ff;
+  --accent-soft-hover:#e2e6ff;
+  --sky-soft:#eaf5ff;
+  --sky-ink:#245b80;
+  --sky-border:#c5e2f5;
+  --bg:#ffffff; /* LAYOUT: white so the Coach blends into the white Google Sites page */
+  --surface:#ffffff;
+  --surface-soft:#fafbff;
+  --placeholder:#66728b;
+  --focus:#9e5900;
+  --focus-input:#4f46d8;
+  --editor-bg:#17213c;
+  --editor-chrome:#222e4c;
+  --editor-border:#3c4b70;
+  --editor-muted:#a5b6d5;
+  --editor-text:#dbeaff;
+  --editor-accent:#9cddff;
+  --editor-warm:#ffd29e;
+  --editor-scroll:#526689;
+  --check-bg:#f1f5ff;
+  --check-border:#d1dbf5;
+  --error-ink:#9b452e;
+  --error-bg:#fcf1e9;
+  --panel-shadow:#26356908;
+  --dialog-shadow:#17213c33;
+  --backdrop:#17213c88;
+  --sans:Arial,Helvetica,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit}
+button{cursor:pointer;border:0;touch-action:manipulation;transition:background .15s}
+button:hover{filter:brightness(.97)}
+button:focus-visible,a:focus-visible,summary:focus-visible,.conversation:focus-visible{outline:3px solid var(--focus);outline-offset:4px}
+textarea:focus,input:focus{outline:2px solid var(--focus-input);outline-offset:2px}
+button:disabled{opacity:.6;cursor:default}
+[hidden],.hidden{display:none!important}
+.skip-link{position:fixed;top:-70px;left:20px;z-index:5;background:var(--surface);padding:12px;color:var(--accent);border-radius:8px}
+.skip-link:focus{top:10px}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border)}
+.topbar-inner{max-width:1000px;min-height:84px;margin:auto;display:flex;align-items:center;justify-content:space-between;padding:15px 32px;gap:20px}
+.brand{display:flex;align-items:center;gap:12px;font-size:21px;font-weight:700;letter-spacing:-.5px;line-height:1.2}
+.brand-icon{width:44px;height:44px;display:grid;place-items:center;border-radius:13px;background:var(--accent);color:var(--surface);font:bold 20px Consolas,monospace}
+.brand small{display:block;font-size:9px;letter-spacing:1.4px;color:var(--muted);margin-top:5px;font-weight:500}
+.help-button{background:transparent;color:var(--muted);font-size:13px;display:flex;align-items:center;gap:7px;padding:10px 0;min-height:44px}
+.help-button>span{border:1px solid var(--border-strong);border-radius:50%;width:19px;height:19px;display:grid;place-items:center;font-size:12px;line-height:1}
+.app-shell{max-width:764px;margin:0 auto;padding:0 24px}
+.panel{border:1px solid var(--border);border-radius:20px;background:var(--surface);box-shadow:0 7px 26px var(--panel-shadow)}
+.screen.panel{padding:32px 36px}
+.step-label{display:flex;align-items:center;gap:9px;color:var(--accent);font-size:13px;font-weight:600;margin-bottom:10px}
+.mini-spark{font-size:19px;color:var(--accent);display:inline-grid;place-items:center}
+.step-label .mini-spark{width:28px;height:28px;border-radius:8px;background:var(--accent-soft)}
+h1{font-size:30px;line-height:1.25;letter-spacing:-.85px;margin:0 0 12px}
+h1:focus{outline:0}
+h2{font-size:24px;line-height:1.3;letter-spacing:-.5px;margin:0 0 10px}
+.screen-intro{font-size:15px;color:var(--muted);line-height:1.7;margin:0 0 25px}
+.practice-banner{display:flex;justify-content:space-between;align-items:center;gap:18px;background:var(--sky-soft);border:1px solid var(--sky-border);border-radius:10px;padding:14px 16px;margin-bottom:25px;font-size:13px;color:var(--sky-ink)}
+.practice-banner strong{display:block;font-size:13px;font-weight:600}
+.practice-banner small{display:block;font-size:12px;margin-top:2px;color:var(--muted)}
+.text-button{background:transparent;color:var(--accent);font-size:13px;font-weight:600;padding:7px 0;min-height:36px;line-height:1.5}
+.practice-banner .text-button{white-space:nowrap;font-size:12px}
+.field{margin-bottom:22px}
+label{display:block;font-size:15px;font-weight:600;margin-bottom:9px}
+textarea,input{width:100%;border:1px solid var(--border-strong);border-radius:10px;background:var(--surface-soft);padding:13px 15px;line-height:1.65;color:var(--ink);font-size:16px}
+textarea{resize:vertical;min-height:78px;display:block}
+textarea::placeholder,input::placeholder{color:var(--placeholder)}
+.screen-actions{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:27px}
+.quiet-tip{font-size:12px;color:var(--muted)}
+.primary{display:inline-flex;align-items:center;justify-content:center;gap:22px;background:var(--accent);color:var(--surface);border:1px solid var(--accent);border-radius:10px;font-size:14px;font-weight:600;padding:12px 19px;min-height:48px;line-height:1.5;white-space:nowrap}
+.primary:hover{background:var(--accent-dark)}
+.primary>span{font-size:19px;font-weight:400;line-height:1}
+.secondary{background:var(--accent-soft);color:var(--accent-dark);border:1px solid var(--border);padding:11px 18px;border-radius:9px;font-size:14px;min-height:46px}
+.form-error{color:var(--error-ink);background:var(--error-bg);border-radius:8px;padding:10px 13px;font-size:14px}
+.editor{background:var(--editor-bg);border:1px solid var(--editor-border);border-radius:12px;overflow:hidden}
+.editor-tabs{display:flex;align-items:stretch;background:var(--editor-chrome);border-bottom:1px solid var(--editor-border)}
+.editor-tabs button{position:relative;display:flex;gap:9px;align-items:center;min-height:49px;background:transparent;color:var(--editor-muted);border-right:1px solid var(--editor-border);padding:0 19px;font:13px Consolas,monospace}
+.editor-tabs button[aria-selected=true]{background:var(--editor-bg);color:var(--editor-text)}
+.editor-tabs button[aria-selected=true]:before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:var(--editor-accent)}
+.editor-tabs button:focus-visible{outline-offset:-4px}
+.html-icon{color:var(--editor-warm);font-weight:bold}
+.css-icon{color:var(--editor-accent);font-size:17px}
+.editor-note{margin-left:auto;align-self:center;padding-right:16px;color:var(--editor-muted);font-size:11px}
+.editor-panel{display:flex;max-height:300px;min-height:230px}
+.line-numbers{flex:0 0 40px;padding:18px 10px 18px 0;font:14px/25px Consolas,'Courier New',monospace;text-align:right;overflow:hidden;color:var(--editor-muted);max-height:254px;user-select:none}
+.code-input{flex:1;min-width:0;border:0;border-radius:0;background:transparent;color:var(--editor-text);font:14px/25px Consolas,'Courier New',monospace;padding:18px 14px 18px 0;tab-size:2;resize:vertical;min-height:230px;max-height:300px;white-space:pre;scrollbar-color:var(--editor-scroll) var(--editor-bg);scrollbar-width:thin}
+.code-input:focus{outline:0;box-shadow:inset 2px 0 var(--editor-accent)}
+.code-input::placeholder{color:var(--editor-muted)}
+.editor-footer{border-top:1px solid var(--editor-border);display:flex;justify-content:space-between;gap:15px;font:10px Consolas,monospace;color:var(--editor-muted);background:var(--editor-chrome);padding:8px 13px}
+.editor-footer>span:last-child{font:10px var(--sans);align-self:center}
+.code-tip{font-size:13px;color:var(--muted);line-height:1.7;margin:17px 0 0}
+.return-coach{display:block;margin:18px auto 0;font-size:12px;text-decoration:underline;text-underline-offset:3px}
+.coach-panel{overflow:hidden}
+.coach-heading{display:flex;align-items:center;gap:13px;padding:23px 26px;border-bottom:1px solid var(--border)}
+.coach-avatar{display:grid;place-items:center;flex-shrink:0;background:var(--sky-soft);color:var(--sky-ink);width:43px;height:43px;border-radius:14px;font-size:27px}
+.coach-heading h1{font-size:23px;margin:0 0 4px}
+.coach-heading p{font-size:12px;color:var(--muted);margin:0}
+.coach-heading .text-button{margin-left:auto;font-size:12px;white-space:nowrap}
+/* FIX 6: no max-height or inner scrollbar. The conversation grows with the page, so the
+   Google Sites embed is the only thing that scrolls. Set the embed tall enough in Sites. */
+.conversation{min-height:210px;background:var(--surface-soft);padding:24px 26px}
+.message{font-size:15px;line-height:1.75;padding:14px 18px;border-radius:13px;white-space:pre-wrap;overflow-wrap:anywhere;max-width:95%;margin:0 0 15px}
+.message:last-child{margin-bottom:0}
+.message:before{display:block;font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:6px}
+.message.coach{background:var(--surface);border:1px solid var(--border);border-top-left-radius:3px;color:var(--ink)}
+.message.coach:before{content:'COACH';color:var(--muted)}
+.message.student{margin-left:auto;background:var(--accent-soft);border-bottom-right-radius:3px;color:var(--accent-dark)}
+.message.student:before{content:'YOU';color:var(--muted)}
+.response-area{border-top:1px solid var(--border);padding:22px 26px}
+.response-area label{font-size:14px;color:var(--muted)}
+.composer{display:flex;align-items:flex-end;gap:10px}
+.composer textarea{font-size:15px;min-height:82px;max-height:220px;flex:1;min-width:0}
+.composer .primary{min-width:88px;padding:11px 14px;gap:12px}
+.response-actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:15px}
+.success-button{background:var(--sky-soft);color:var(--sky-ink);border:1px solid var(--sky-border);border-radius:9px;padding:10px 15px;min-height:46px;font-size:14px}
+.success-button span{margin-left:7px}
+.teacher-link{font-size:12px;margin-left:auto;text-decoration:underline;text-underline-offset:3px}
+.choice-list{display:flex;flex-wrap:wrap;gap:9px;margin:0 0 20px}
+.choice-button{background:var(--accent-soft);border:1px solid var(--border-strong);border-radius:9px;padding:10px 15px;font-size:14px;line-height:1.6;color:var(--accent-dark);text-align:left;min-height:46px}
+.choice-button:hover{background:var(--accent-soft-hover)}
+.verification{background:var(--check-bg);padding:24px 26px;border-top:1px solid var(--check-border)}
+.check-label{font-size:10px;letter-spacing:1.3px;font-weight:600;color:var(--accent-dark)}
+.verification h2{font-size:23px;margin-top:5px}
+.verification-prompt{font-size:16px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere;margin:16px 0 20px;color:var(--accent-dark)}
+.verification label{font-size:14px}
+#verificationResult{font-size:14px;background:var(--accent-soft);color:var(--accent-dark);border:1px solid var(--check-border);border-radius:9px;padding:11px 14px;line-height:1.7}
+#verificationResult:empty{display:none}
+.verify-actions{display:flex;align-items:center;flex-wrap:wrap;gap:15px;margin-top:17px}
+.summary-panel{margin-top:18px;padding:0 24px;background:var(--surface-soft);box-shadow:none}
+summary{cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:15px;list-style:none;padding:17px 0;font-size:14px;font-weight:600;color:var(--muted)}
+summary::-webkit-details-marker{display:none}
+summary small{font-size:11px;color:var(--muted);margin-left:12px;font-weight:400}
+.summary-plus{font-size:18px;font-weight:400}
+details[open] .summary-plus{transform:rotate(45deg)}
+.summary{margin:0}
+.summary>div{display:grid;grid-template-columns:145px minmax(0,1fr);gap:16px;padding:12px 0;border-top:1px solid var(--border);font-size:13px;line-height:1.75}
+.summary dt{color:var(--muted)}
+.summary dd{margin:0;color:var(--accent-dark);overflow-wrap:anywhere}
+.notes-tip{font-size:11px;color:var(--muted);margin:12px 0 20px;line-height:1.7}
+.session-tools{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:17px 4px 25px;font-size:11px;color:var(--muted)}
+.session-tools .text-button{font-size:11px;color:var(--muted);font-weight:400;text-decoration:underline;text-underline-offset:3px}
+.session-tools>span{font-size:11px}
+dialog{width:calc(100% - 36px);max-width:530px;border:1px solid var(--border);border-radius:20px;background:var(--surface);padding:32px;color:var(--ink);box-shadow:0 18px 65px var(--dialog-shadow)}
+dialog::backdrop{background:var(--backdrop);backdrop-filter:blur(2px)}
+dialog .mini-spark{font-size:28px;margin-bottom:10px}
+dialog .close-button{position:absolute;right:15px;top:10px;background:transparent;color:var(--muted);font-size:27px;padding:3px 10px;min-height:44px}
+dialog ol{padding-left:23px;color:var(--muted);font-size:14px;line-height:1.8}
+dialog li{padding-left:4px;margin:13px 0}
+dialog strong{color:var(--accent-dark)}
+dialog p{font-size:14px;color:var(--muted);line-height:1.8}
+dialog details{border-top:1px solid var(--border);margin:20px 0}
+dialog details summary{font-size:12px;padding-bottom:0}
+dialog details p{font-size:12px}
+.screen{scroll-margin-top:16px}
+
+@media(max-width:600px){.topbar-inner{padding:14px 20px;min-height:78px}
+.brand{font-size:19px}
+.brand-icon{width:40px;height:40px;border-radius:12px}
+.help-button{font-size:11px}
+.app-shell{padding:0 15px}
+.screen.panel{padding:26px 22px}
+h1{font-size:29px}
+.screen-intro{font-size:14px;margin-bottom:23px}
+.practice-banner{padding:13px;gap:12px}
+.practice-banner strong{font-size:12px}
+.practice-banner small{font-size:11px}
+.practice-banner .text-button{font-size:11px}
+.field{margin-bottom:22px}
+label{font-size:14px}
+.screen-actions{gap:12px;flex-wrap:wrap}
+.quiet-tip{display:none}
+.screen-actions .primary{margin-left:auto}
+.primary{font-size:14px;padding:12px 17px}
+.session-tools{align-items:flex-start;flex-direction:column;gap:0;padding:12px 5px 22px}
+.session-tools .text-button{font-size:11px}
+.session-tools>span{font-size:10px}
+.editor-note{display:none}
+.editor-tabs button{padding:0 19px}
+.line-numbers{font-size:13px;flex-basis:31px;padding-right:8px}
+.code-input{font-size:13px}
+.editor-footer{font-size:9px}
+.editor-footer>span:last-child{display:none}
+.code-tip{font-size:12px}
+.coach-heading{padding:19px 19px;gap:10px}
+.coach-avatar{width:36px;height:36px;border-radius:12px;font-size:24px}
+.coach-heading h1{font-size:20px}
+.coach-heading p{font-size:11px}
+.coach-heading .text-button{font-size:11px;max-width:62px;white-space:normal;line-height:1.4}
+/* FIX 6: mobile max-height removed as well. */
+.conversation{padding:20px 18px}
+.message{font-size:15px;padding:13px 15px;max-width:97%}
+.response-area{padding:20px 18px}
+.composer{flex-wrap:wrap;gap:10px}
+.composer textarea{font-size:16px;flex-basis:100%;min-height:84px}
+.composer .primary{margin-left:auto;min-width:100px}
+.response-actions{padding-top:14px;border-top:1px solid var(--border)}
+.secondary,.success-button{font-size:13px;padding:10px 13px}
+.teacher-link{font-size:11px}
+.verification{padding:22px 18px}
+.verification-prompt{font-size:15px}
+.verify-actions{gap:11px}
+.verify-actions .primary{font-size:13px}
+.verify-actions .teacher-link{margin-left:0}
+.choice-list{flex-direction:column}
+.choice-button{font-size:14px}
+.summary-panel{padding:0 18px}
+summary{font-size:13px}
+summary small{display:block;margin:3px 0 0}
+.summary>div{grid-template-columns:1fr;gap:3px}
+.verification h2{font-size:22px}
+}
+@media(max-width:360px){.screen.panel{padding:24px 18px}
+.practice-banner{flex-direction:column;align-items:flex-start;gap:5px}
+.brand small{font-size:8px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}
+}
+
+/* A compact lesson choice keeps coaching within the student's current concepts. */
+.lesson-field{display:flex;align-items:center;gap:16px;margin:0 0 18px}
+.lesson-field label{margin:0;white-space:nowrap;font-size:13px}
+.lesson-field select{flex:1;min-width:0;background:var(--surface-soft);border:1px solid var(--border-strong);border-radius:8px;color:var(--accent-dark);font:14px var(--sans);min-height:42px;padding:8px 11px}
+.lesson-field select:focus-visible{outline:2px solid var(--focus-input);outline-offset:2px}
+body[data-screen=challenge] .screen.panel{padding-top:26px;padding-bottom:26px}
+body[data-screen=challenge] .screen-intro{margin-bottom:18px}
+body[data-screen=challenge] .practice-banner{padding-top:10px;padding-bottom:10px;margin-bottom:19px}
+body[data-screen=challenge] .field{margin-bottom:16px}
+body[data-screen=challenge] .screen-actions{margin-top:20px}
+/* Keep the first action within a typical 768px Chromebook viewport. */
+body[data-screen=challenge] .field textarea{min-height:72px;padding-top:9px;padding-bottom:9px}
+@media(max-width:600px){.lesson-field{gap:10px}
+.lesson-field select{font-size:14px}
+.lesson-field label{font-size:12px}
+}
+.editor-tabs button:focus-visible{outline-color:var(--editor-accent)}
+
+/* Four problem-solving moves replace the old screen-number strip. */
+.process-guide{margin:18px 0 20px}
+.journey{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;list-style:none;margin:0;padding:0}
+.journey li{position:relative;display:flex;align-items:center;justify-content:center;gap:9px;min-width:0;min-height:50px;padding:7px 10px;border:1px solid var(--border-strong);border-radius:12px;background:var(--surface);color:var(--muted);font-size:14px;font-weight:600}
+.journey li:not(:last-child):after{content:'›';position:absolute;right:-15px;color:var(--muted);font-size:22px;font-weight:400}
+.journey .active{background:var(--accent-soft);border:2px solid var(--accent);color:var(--accent-dark);padding:6px 9px}
+.process-symbol{display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.process-icon{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.process-hint{margin:9px 0 0;text-align:center;font-size:12px;line-height:1.5;color:var(--muted);min-height:18px}
+dialog .process-map{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0;margin:20px 0}
+dialog .process-map li{display:flex;gap:11px;margin:0;padding:14px 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface-soft)}
+.map-icon{color:var(--accent);padding-top:3px}
+.map-stage{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}
+.process-map strong{display:block;font-size:14px;line-height:1.5}
+dialog .process-map p{font-size:12px;line-height:1.6;margin:6px 0 0}
+dialog .loop-note{display:flex;align-items:center;gap:12px;background:var(--sky-soft);border-radius:10px;padding:13px;color:var(--sky-ink);font-size:13px}
+.loop-note strong{color:inherit}
+@media(max-width:600px){
+  .process-guide{margin:16px 0 18px}
+  .journey{gap:12px}
+  .journey li{flex-direction:column;gap:3px;padding:8px 3px;font-size:12px;line-height:1.4}
+  .journey .active{padding:7px 2px}
+  .journey li:not(:last-child):after{right:-10px;font-size:19px;top:18px}
+  .process-icon{width:23px;height:23px}
+  .process-hint{font-size:12px;text-align:left}
+  dialog .process-map{grid-template-columns:1fr}
+}
+
+</style>
+<a href="#main" class="skip-link">Skip to workspace</a>
+<header class="topbar"><div class="topbar-inner"><div class="brand"><span class="brand-icon" aria-hidden="true">&lt;/&gt;</span><span>Tech Coach<small>TECH FOUNDATIONS</small></span></div><button type="button" id="helpBtn" class="help-button"><span aria-hidden="true">?</span> How it works</button></div></header>
+<main id="main" class="app-shell">
+<section class="process-guide" aria-label="Your problem-solving process"><ol class="journey"><li data-process="define" class="active" aria-current="step"><span class="process-symbol"><svg class="process-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5M8 10h4m-2-2v4"/></svg></span><span>Define</span></li><li data-process="prepare"><span class="process-symbol"><svg class="process-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 4H5v16h14v-8M8 8h2m-2 4h2m-2 4h7m-1-6 6-6-2-2-6 6-1 4z"/></svg></span><span>Prepare</span></li><li data-process="try"><span class="process-symbol"><svg class="process-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 5-4 4 4 4m12-8 4 4-4 4m-4-9-4 10"/><path d="m10 16 6 3-6 3z"/></svg></span><span>Try</span></li><li data-process="reflect"><span class="process-symbol"><svg class="process-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 10a8 8 0 0 0-14-5L3 8m0-5v5h5M4 14a8 8 0 0 0 14 5l3-3m0 5v-5h-5m-7-4 2 2 4-4"/></svg></span><span>Reflect</span></li></ol><p id="processHint" class="process-hint" role="status">Define: spot the difference between your goal and what happens.</p></section>
+<form id="intakeForm" novalidate>
+<section id="challengeScreen" class="screen panel" aria-labelledby="challengeTitle">
+<h1 id="challengeTitle" tabindex="-1">What’s going on?</h1><p class="screen-intro">Tell me what you wanted to happen and what went wrong.</p>
+<div class="lesson-field"><label for="lessonSelect">Which lesson?</label><select id="lessonSelect"><option value="auto">Not sure / my own project</option><option value="2" selected>2 · Intro to HTML</option><option value="3">3 · Headings and Lists</option><option value="5">5 · HTML Web Page project</option><option value="6">6 · Styling Text with CSS</option></select></div>
+<div id="practiceBanner" class="practice-banner"><span><strong>Practice: my paragraphs run together</strong><small>We’ve filled one in for you.</small></span><button type="button" id="clearBtn" class="text-button">Use my own code <span aria-hidden="true">→</span></button></div>
+<div class="field"><label for="goal">What are you trying to do?</label><textarea id="goal" rows="2" required placeholder="For example: Make one paragraph red">Show two separate paragraphs</textarea></div>
+<div class="field"><label for="actual">What happens instead?</label><textarea id="actual" rows="2" required placeholder="For example: Every paragraph turns red">I pressed Enter, but the text stays on one line</textarea></div>
+<p id="intakeError" class="form-error" role="alert" hidden></p><div class="screen-actions"><span class="quiet-tip">A sentence or two is enough.</span><button type="button" id="nextCodeBtn" class="primary">Next: add code <span aria-hidden="true">→</span></button></div>
+</section>
+<section id="codeScreen" class="screen panel" aria-labelledby="codeTitle" hidden>
+<h1 id="codeTitle" tabindex="-1">Show me your code.</h1><p class="screen-intro">Paste just the part you’re stuck on. You can leave a tab empty.</p>
+<div class="editor"><div class="editor-tabs" role="tablist" aria-label="Choose your code language"><button type="button" id="htmlTab" role="tab" aria-selected="true" aria-controls="htmlPanel"><span class="html-icon" aria-hidden="true">&lt;&gt;</span>HTML</button><button type="button" id="cssTab" role="tab" aria-selected="false" aria-controls="cssPanel" tabindex="-1"><span class="css-icon" aria-hidden="true">#</span>CSS</button><span class="editor-note">Your snippet</span></div>
+<div id="htmlPanel" class="editor-panel" role="tabpanel" aria-labelledby="htmlTab"><div id="htmlLines" class="line-numbers" aria-hidden="true">1<br>2</div><textarea id="htmlCode" class="code-input" rows="8" wrap="off" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Relevant HTML code" placeholder="Paste your HTML here…">Welcome to our school garden.
+We grow flowers and vegetables.</textarea></div>
+<div id="cssPanel" class="editor-panel" role="tabpanel" aria-labelledby="cssTab" hidden><div id="cssLines" class="line-numbers" aria-hidden="true">1<br>2<br>3</div><textarea id="cssCode" class="code-input" rows="8" wrap="off" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Relevant CSS code" placeholder="Paste your CSS here…"></textarea></div><div class="editor-footer"><span id="codeStatus">HTML · 1 line</span><span>HTML = content · CSS = style</span></div></div>
+<p class="code-tip">You’ll test changes in your own project. This space helps us talk about the code.</p>
+<div class="screen-actions"><button type="button" id="backChallengeBtn" class="secondary">← Back</button><button type="submit" id="startBtn" class="primary">Start coaching <span aria-hidden="true">→</span></button></div><button type="button" id="returnCoachBtn" class="text-button return-coach" hidden>Return to our conversation without restarting</button>
+</section></form>
+<section id="coachScreen" class="screen" aria-labelledby="coachTitle" hidden>
+<div class="panel coach-panel"><div class="coach-heading"><span class="coach-avatar" aria-hidden="true">✦</span><div><h1 id="coachTitle" tabindex="-1">Let’s work it out.</h1><p id="status" role="status">Ready when you are</p></div><button type="button" id="reviewCodeBtn" class="text-button">View my code</button><span id="levelPill" hidden>Level 0</span></div>
+<div id="conversation" class="conversation" role="log" aria-label="Conversation with your Coach" aria-live="polite" tabindex="0"></div>
+<div id="responseArea" class="response-area hidden"><div id="coachingChoices" class="choice-list" role="group" aria-label="Choose the answer closest to your thinking" hidden></div><label for="studentResponse">What do you think?</label><div class="composer"><textarea id="studentResponse" rows="2" placeholder="It’s okay to be unsure. Share your thinking…"></textarea><button type="button" id="sendBtn" class="primary">Send <span aria-hidden="true">↑</span></button></div><div class="response-actions"><button type="button" id="stuckBtn" class="secondary">Still stuck</button><button type="button" id="fixedBtn" class="success-button">I fixed it <span aria-hidden="true">✓</span></button><button type="button" id="teacherBtn" class="text-button teacher-link">Ask my teacher</button></div></div>
+<section id="verificationCard" class="verification hidden" aria-labelledby="verificationTitle"><span class="check-label">ONE QUICK CHECK</span><h2 id="verificationTitle">Try a new example.</h2><p id="verificationResult" role="status"></p><p id="verificationPrompt" class="verification-prompt"></p><div id="verificationChoices" class="choice-list" role="group" aria-label="Understanding check choices" hidden></div><label for="verificationAnswer">Your answer</label><input id="verificationAnswer" placeholder="Type your answer…" autocomplete="off"><div class="verify-actions"><button type="button" id="verifyBtn" class="primary">Check my answer <span aria-hidden="true">→</span></button><button type="button" id="verifyTeacherBtn" class="text-button teacher-link">Check with my teacher</button></div></section>
+<!-- FIX 4: Reflect step. Shown after a resolved session; the answer is saved to the session notes. -->
+<section id="reflectionCard" class="verification hidden" aria-labelledby="reflectionTitle"><span class="check-label">REFLECT</span><h2 id="reflectionTitle">What did you learn?</h2><p class="verification-prompt">Next time something like this happens, what will you check first?</p><label for="reflectionAnswer">Your reflection</label><textarea id="reflectionAnswer" rows="2" placeholder="One sentence is enough…"></textarea><div class="verify-actions"><button type="button" id="reflectBtn" class="primary">Save to my notes <span aria-hidden="true">→</span></button></div></section>
+</div>
+<details id="summaryPanel" class="panel summary-panel"><summary id="summaryToggle"><span>Session notes <small>For you and your teacher</small></span><span class="summary-plus" aria-hidden="true">＋</span></summary><dl class="summary"><div><dt>Lesson</dt><dd id="sumLesson">Not specified / own project</dd></div><div><dt>Challenge</dt><dd id="sumBarrier">—</dd></div><div><dt>Possible pathway</dt><dd id="sumHypothesis">—</dd></div><div><dt>Highest support level</dt><dd id="sumSupport">0</dd></div><div><dt>Understanding check</dt><dd id="sumVerification">Not attempted</dd></div><div><dt>Evidence</dt><dd id="sumEvidence">No evidence recorded yet.</dd></div><div><dt>Attempts &amp; reported result</dt><dd id="sumAttempts">No code change reported yet.</dd></div><div><dt>Reflection</dt><dd id="sumReflection">Not written yet</dd></div><div><dt>Outcome</dt><dd id="sumStatus">Not started</dd></div></dl><p class="notes-tip">Show these notes to your teacher if you need help. They clear when you reset or reload.</p></details>
+</section>
+<div class="session-tools"><button type="button" id="resetBtn" class="text-button">Start over with the practice example</button><span>Your code stays in this tab.</span></div>
+</main>
+<dialog id="helpDialog" aria-labelledby="helpTitle"><button type="button" id="closeHelpBtn" class="close-button" aria-label="Close help">×</button><span class="mini-spark" aria-hidden="true">✦</span><h2 id="helpTitle">One step at a time.</h2><p>Use these four moves whenever you get stuck.</p><ol class="process-map"><li><span class="map-icon"><svg class="process-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5M8 10h4m-2-2v4"/></svg></span><div><span class="map-stage">1 · Define</span><strong>What’s the problem?</strong><p>Compare your goal with what happens.</p></div></li><li><span class="map-icon"><svg class="process-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 4H5v16h14v-8M8 8h2m-2 4h2m-2 4h7m-1-6 6-6-2-2-6 6-1 4z"/></svg></span><div><span class="map-stage">2 · Prepare</span><strong>What could I change?</strong><p>Look at the code. Pick one small idea.</p></div></li><li><span class="map-icon"><svg class="process-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 5-4 4 4 4m12-8 4 4-4 4m-4-9-4 10"/><path d="m10 16 6 3-6 3z"/></svg></span><div><span class="map-stage">3 · Try</span><strong>What happens if…?</strong><p>Test your change in Web Lab.</p></div></li><li><span class="map-icon"><svg class="process-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 10a8 8 0 0 0-14-5L3 8m0-5v5h5M4 14a8 8 0 0 0 14 5l3-3m0 5v-5h-5m-7-4 2 2 4-4"/></svg></span><div><span class="map-stage">4 · Reflect</span><strong>What did I learn?</strong><p>Compare the result. Explain the idea.</p></div></li></ol><p class="loop-note"><svg class="process-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 10a8 8 0 0 0-14-5L3 8m0-5v5h5M4 14a8 8 0 0 0 14 5l3-3m0 5v-5h-5m-7-4 2 2 4-4"/></svg><span><strong>It’s a loop.</strong> Still stuck? Go back, choose another idea, and try again.</span></p><p>You can ask your teacher for help at any point.</p><details><summary>About this practice tool</summary><p>This offline prototype uses scripted questions. Choose your lesson so the Coach can use concepts you have reached. These lesson pathways respond to a limited set of typed answers and clear choices. They do not cover every Web Lab problem. It doesn’t run your code or save the session. Reloading starts over.</p></details><button type="button" id="gotItBtn" class="primary">Got it</button></dialog>
+<script>
+window.TFC_PATHWAYS = {
+  class_selector_confusion: {
+    label: "Possible class-selector confusion",
+    levels: [
+      "What do you think your current CSS selector is telling the browser to select?",
+      "Look at the element you want to style. What does it have that the other element does not?",
+      "A plain element selector like p targets every paragraph. What kind of selector targets a class?",
+      "Class selectors begin with a dot. Try applying that idea to the class name in your HTML."
+    ],
+    verify: 'An element has class="featured". What CSS selector would target that class?',
+    check: (answer) => answer.replace(/\s/g, "").toLowerCase() === ".featured"
+  },
+
+  property_value_confusion: {
+    label: "Possible CSS property/value confusion",
+    levels: [
+      "Which part of your CSS describes the feature you want to change?",
+      "Which part describes what you want that feature to become?",
+      "CSS declarations follow the pattern property: value;. Which part of your rule should be the property?",
+      "For colour, compare your rule with the structure color: red;."
+    ],
+    verify: "In font-size: 20px;, which part is the property and which part is the value?",
+    check: (answer) =>
+      /font-size/i.test(answer) &&
+      /20px/i.test(answer) &&
+      /property/i.test(answer) &&
+      /value/i.test(answer)
+  },
+
+  tag_confusion: {
+    label: "Possible opening/closing-tag confusion",
+    levels: [
+      "What do you think the / symbol changes in an HTML tag?",
+      "Which tag tells the browser that the element begins?",
+      "HTML elements often have a beginning tag and a matching ending tag. What would tell the browser the element has finished?",
+      "The closing tag contains /. Try pairing the opening tag with the matching closing tag."
+    ],
+    verify: "Repair this HTML: <p>Hello<p>",
+    check: (answer) => answer.replace(/\s/g, "").toLowerCase().includes("<p>hello</p>")
+  },
+
+  nesting_confusion: {
+    label: "Possible HTML nesting confusion",
+    levels: [
+      "Which element did you open most recently?",
+      "If one element is inside another, which one needs to close first?",
+      "Think of nested HTML like boxes inside boxes: the inside box closes before the outside box.",
+      "Try closing the most recently opened element first, then work outward."
+    ],
+    verify: "In <p>Hello <strong>world ... which should close first: </strong> or </p>?",
+    check: (answer) => /strong/i.test(answer)
+  },
+
+  stylesheet_link_confusion: {
+    label: "Possible stylesheet connection problem",
+    levels: [
+      "How does your HTML page know which CSS file to load?",
+      "Find the stylesheet filename in your HTML. What filename does it say?",
+      "Now compare that with the actual CSS filename. Do they match exactly?",
+      "The filename in href must match the CSS filename exactly. Try correcting that connection."
+    ],
+    verify: 'Your HTML says href="main.css", but the file is named main-style.css. What needs to change?',
+    check: (answer) => /main-style\.css/i.test(answer) || (/href/i.test(answer) && /match/i.test(answer))
+  },
+
+  html_css_role_confusion: {
+    label: "Possible HTML/CSS role confusion",
+    levels: [
+      "What job do you think HTML does on a webpage?",
+      "What job do you think CSS does?",
+      "Think about structure and appearance. Which belongs mainly to HTML, and which mainly to CSS?",
+      "HTML mainly describes content and structure. CSS mainly controls presentation and appearance."
+    ],
+    verify: "You want to add a paragraph, then make it blue. Which language handles each job?",
+    check: (answer) =>
+      /html/i.test(answer) &&
+      /css/i.test(answer) &&
+      (/paragraph/i.test(answer) || /add/i.test(answer)) &&
+      (/blue/i.test(answer) || /style/i.test(answer))
+  },
+
+  unclassified: {
+    label: "Unclassified barrier",
+    levels: [
+      "What did you expect your code to do?",
+      "What happened instead?",
+      "What is the smallest section of code connected to that difference?",
+      "Try one small change that would test your idea, then tell me what changed."
+    ],
+    verify: "Describe one small test you could run to narrow the problem down.",
+    check: (answer) => answer.trim().length > 12
+  }
+};
+
+</script><script>
+/* Offline, bounded class-selector coaching. No code execution or student storage. */
+(() => {
+  'use strict';
+  const normalise = text => String(text).trim().toLowerCase().replace(/[’‘]/g, "'").replace(/[.!?]+$/g, '').replace(/\s+/g, ' ');
+  const unsure = text => /^(?:i(?:'m| am)?\s+)?(?:not sure|unsure|don't know|do not know|dunno|idk|confused|stuck|no idea|i need help|help)(?:\b|$)/.test(normalise(text));
+  const negative = text => /\b(?:not|no|never|isn't|aren't|doesn't|don't|can't|cannot)\b/.test(normalise(text));
+  const labelFor = tag => ({p:'paragraph', h1:'heading', h2:'heading', h3:'heading', h4:'heading', h5:'heading', h6:'heading', div:'div element', span:'span element', button:'button', li:'list item'}[tag] || `${tag} element`);
+  const choice = (id, text) => ({id, text});
+
+  function getContext(goal, html, css) {
+    // Restrict this first responsive pathway to one simple tag selector and one
+    // unambiguous target class. More complex snippets keep the fallback pathway.
+    const selectors = [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/(?:^|\})\s*([a-z][a-z0-9-]*)\s*\{/gi)];
+    if (selectors.length !== 1) return null;
+    const tag = selectors[0][1].toLowerCase();
+    const candidates = [];
+    const tags = /<([a-z][\w-]*)\b([^<>]*)>/gi;
+    for (const match of html.replace(/<!--[\s\S]*?-->/g, '').matchAll(tags)) {
+      if (match[1].toLowerCase() !== tag) continue;
+      const attribute = /(?:^|\s)class\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(match[2]);
+      if (!attribute) continue;
+      for (const value of (attribute[1] ?? attribute[2] ?? attribute[3]).split(/\s+/)) {
+        if (/^[a-zA-Z_][\w-]*$/.test(value)) candidates.push(value);
+      }
+    }
+    const unique = [...new Set(candidates)];
+    const target = unique.length === 1 ? unique[0] : null;
+    return target ? {tag, target, element:labelFor(tag)} : null;
+  }
+
+  function diagnostic(text, context) {
+    const value = normalise(text);
+    if (unsure(value)) return 'unsure';
+    if (negative(value)) return 'unclear';
+    const element = context.element;
+    const correct = new Set([
+      'all', 'both', 'all of them', 'both of them', 'an element type', 'the element type',
+      `all ${element}s`, `every ${element}`, `both ${element}s`, `all the ${element}s`,
+      `all of the ${element}s`, `it selects all ${element}s`, `it selects every ${element}`,
+      `i think it selects all ${element}s`, `i think it selects every ${element}`,
+      `it targets all ${element}s`, `all ${context.tag} elements`, `every ${context.tag} element`,
+      `it selects all ${context.tag} elements`, `the ${context.tag} elements`,
+      `${context.tag} selects every ${element}`, `${context.tag} selects all ${element}s`,
+      `it selects all the ${element}s`, `all ${element}s on the page`,
+      `every ${element} on the page`, `it selects all ${element}s on the page`
+    ]);
+    if (correct.has(value)) return 'correct';
+    const target = context.target.toLowerCase();
+    const wrong = new Set([
+      'the class', 'only one', 'just one', 'only the first', `only the first ${element}`,
+      `the ${target} class`, `${target}`, `the ${target} ${element}`, `only the ${target} ${element}`,
+      `it selects the ${target} class`, `${context.tag} selects the ${target} class`,
+      `it selects only the ${target} ${element}`, `only elements with the ${target} class`,
+      `the ${element} with the ${target} class`, `the ${element} with class ${target}`
+    ]);
+    if (wrong.has(value)) return 'misconception';
+    return 'unclear';
+  }
+
+  function selectorAnswer(text, target, tag) {
+    if (unsure(text)) return 'unsure';
+    let value = String(text).trim().replace(/^```(?:css)?\s*\n?([\s\S]*?)\n?```$/i, '$1').trim();
+    value = value.replace(/^`([^`]+)`$/, '$1').trim();
+    // Accept a single selector, a complete single rule, or a short explicit
+    // proposal. Do not search arbitrary prose for a correct-looking substring.
+    value = value.replace(/^(?:i(?:'d| would| will) (?:use|try)|use|try|the selector (?:is|would be))\s+(.+?)[.!]?$/i, '$1');
+    value = value.replace(/^`([^`]+)`$/, '$1').trim();
+    const rule = /^([^{}]+)\{[^{}]*\}\s*$/.exec(value);
+    if (rule) value = rule[1].trim();
+    if (value === `.${target}` || value === `${tag}.${target}`) return 'correct';
+    if (negative(value) || /\b(?:or|maybe|perhaps)\b/.test(normalise(value))) return 'unclear';
+    if (/^[\w.#*\s,:>+~\[\]="'()-]+$/.test(value) && /^(?:[.#*]|[a-zA-Z][\w-]*(?:$|[.#\s,:>+~\[]))/.test(value)) return 'wrong';
+    return 'unclear';
+  }
+
+  function scopeAnswer(text) {
+    const value = normalise(text);
+    if (unsure(value)) return 'unsure';
+    if (negative(value)) return 'unclear';
+    const correct = new Set(['both', 'both elements', 'both of them', 'the paragraph and the heading', 'the paragraph and heading', 'the heading and the paragraph', 'all elements with that class', 'every element with that class', 'all elements with the class', 'both buttons', 'the two matching buttons', 'only the two matching buttons']);
+    if (correct.has(value)) return 'correct';
+    if (['only the paragraph','just the paragraph','only the heading','all paragraphs','every paragraph','all elements','everything','all buttons','all three buttons'].includes(value)) return 'wrong';
+    return 'unclear';
+  }
+
+  function create(context) {
+    let stage = 'diagnose', phase = 'coaching', level = 1, clarification = 0;
+    let prompt = `What do you think the selector ${context.tag} tells the browser to select?`;
+    let choices = [], feedback = '', outcome = 'Exploring class selectors', verification = 'Not attempted';
+    let reportedFixed = false, errors = 0, checkTarget = context.target === 'featured' ? 'spotlight' : 'featured';
+    const evidence = [], attempts = [];
+    const name = context.target, element = context.element;
+    function view() {
+      return {phase, stage, level, prompt, choices:choices.map(item => ({...item})), feedback, outcome, verification, reportedFixed, evidence:[...evidence], attempts:[...attempts]};
+    }
+    function say(nextStage, text, nextChoices = [], support = level) {
+      stage = nextStage; prompt = text; choices = nextChoices; level = Math.max(level, support); clarification = 0;
+      return view();
+    }
+    function diagnosticChoices() {
+      return [choice('all', `All ${element}s`), choice('class', `Only the ${name} class`), choice('unsure', 'I’m not sure')];
+    }
+    function propose(prefix = '') {
+      return say('propose', `${prefix}What selector would target just the ${name} class? Type the selector you would try.`);
+    }
+    function focus(kind) {
+      const text = kind === 'misconception'
+        ? `Let’s test that idea. The tag <${context.tag}> and the attribute class="${name}" do different jobs. Does ${context.tag} name an element type or a class?`
+        : `Start with the selector before { in your CSS. The letters ${context.tag} match an HTML tag. Which ${element}s in your snippet use that tag?`;
+      return say(kind === 'misconception' ? 'compare' : 'notice', text,
+        kind === 'misconception'
+          ? [choice('all','An element type'), choice('class',`The ${name} class`), choice('unsure','I’m not sure')]
+          : diagnosticChoices(), 2);
+    }
+    function recall() {
+      return say('recall', `A plain element selector targets that element type. A class selector starts with a symbol. Which symbol selects a class?`,
+        [choice('dot','A dot (.)'), choice('hash','A hash (#)'), choice('unsure','I’m not sure')], 3);
+    }
+    function explicit() {
+      return say('propose', `A class selector begins with a dot followed by the exact class name. In your HTML, the class is "${name}". How would you write that selector?`, [], 4);
+    }
+    function handoff(reason = 'The idea still needs another pair of eyes.') {
+      if (phase === 'done') return view();
+      phase = 'done'; outcome = 'Teacher review recommended';
+      if (verification !== 'Not attempted') verification = 'Not confirmed — teacher review recommended';
+      return say('handoff', `${reason} Show your teacher your code and the session notes below, including what you expected and what you tried.`, [], 5);
+    }
+    function stuck() {
+      if (phase !== 'coaching') return view();
+      feedback = '';
+      if (!attempts.includes('Student requested more support.')) attempts.push('Student requested more support.');
+      if (level >= 4) return handoff();
+      if (stage === 'test') {
+        const prompts = {
+          2:`Compare the class name in your HTML with the name after the dot in your selector, including capitals. Do they match exactly?`,
+          3:`Check whether the old ${context.tag} rule still styles every ${element}. Test your intended class rule in your project, then tell me whether it worked.`,
+          4:`Use a dot directly before the class name, with no space, and check that another rule is not still styling every ${element}. Test one change, then choose “I fixed it” or “Still stuck”.`
+        };
+        return say('test', prompts[level + 1], [choice('fixed','I fixed it'), choice('stuck','Still stuck')], level + 1);
+      }
+      if (level === 1) return focus('unsure');
+      if (level === 2) return recall();
+      return explicit();
+    }
+    function askSelectorCheck() {
+      return say('check-selector', `New example: <p class="${checkTarget}">New project!</p>\nWhat selector would target that class? Type just the selector.`);
+    }
+    function askScopeCheck(retry = false) {
+      return say('check-scope', retry
+        ? 'Two buttons have class="note". A third button has no class. Which buttons does .note select?'
+        : `A paragraph and a heading both have class="${checkTarget}". What does .${checkTarget} select?`, retry
+        ? [choice('both','The two buttons with class="note"'), choice('all','All three buttons'), choice('one','Only the first button'), choice('unsure','I’m not sure')]
+        : [choice('both','Both elements with that class'), choice('one','Only the paragraph'), choice('all','Every paragraph on the page'), choice('unsure','I’m not sure')]);
+    }
+    function fixed() {
+      if (phase !== 'coaching') return view();
+      reportedFixed = true; phase = 'verification'; feedback = '';
+      verification = 'In progress'; outcome = 'Student reports fixed — checking understanding';
+      attempts.push('Student reported the original problem fixed; the app has not run the project.');
+      return askSelectorCheck();
+    }
+    function check(text, selected) {
+      if (phase !== 'verification') return view();
+      const result = stage === 'check-selector' ? selectorAnswer(text, checkTarget, 'p')
+        : selected ? (selected === 'both' ? 'correct' : 'wrong') : scopeAnswer(text);
+      if (result === 'correct') {
+        clarification = 0;
+        if (stage === 'check-selector') {
+          const fullClassSelector = String(text).trim() === `.${checkTarget}`;
+          evidence.push(`New selector matched for class "${checkTarget}"${fullClassSelector ? `: .${checkTarget}` : ' (accepted selector or single-rule form)'}.`);
+          feedback = `That selector matches the new example. Now check what a class selector selects.`;
+          return askScopeCheck();
+        }
+        evidence.push(selected ? 'Identified all matching elements in the scope check (selected answer).' : 'Identified all matching elements in the scope check (typed answer).');
+        phase = 'done'; outcome = 'Resolved — student reported fixed';
+        verification = errors ? 'Passed after one scaffold: new selector + scope' : 'Passed: new selector + scope';
+        feedback = '';
+        return say('resolved', 'Your new selector and scope check match the idea: a dot selects a class, across element types. You reported that your project is working. You can return to it now.');
+      }
+      if (result === 'unclear' && clarification === 0) {
+        clarification = 1;
+        feedback = stage === 'check-selector'
+          ? 'I couldn’t confidently read a single selector in that answer. Type just the selector, without an explanation. This does not count as an incorrect attempt.'
+          : 'I couldn’t confidently interpret that wording. Choose an answer below so I don’t guess what you mean. This does not count as an incorrect attempt.';
+        return view();
+      }
+      errors += 1; clarification = 0;
+      if (errors >= 2) return handoff('The new-example check is still unclear after another try.');
+      if (stage === 'check-selector') {
+        level = Math.max(level, 4);
+        feedback = 'A class selector starts with a dot and the exact class name. Try a different example to check the idea.';
+        checkTarget = context.target === 'notice' ? 'spotlight' : 'notice';
+        return askSelectorCheck();
+      }
+      level = Math.max(level, 3);
+      feedback = 'A class can be shared by different elements. A dot selects the matching class, wherever it appears. Try this new example.';
+      return askScopeCheck(true);
+    }
+    function answer(text, selected = null) {
+      if (phase === 'done') return view();
+      if (phase === 'verification') return check(text, selected);
+      feedback = '';
+      if (stage === 'diagnose' || stage === 'compare' || stage === 'notice') {
+        const result = selected ? ({all:'correct',class:'misconception',unsure:'unsure'}[selected] || 'unclear') : diagnostic(text, context);
+        if (result === 'correct') {
+          evidence.push(`Recognised that ${context.tag} selects every ${element}${selected ? ' (selected answer)' : ' (typed answer)'}.`);
+          return propose(`Yes—${context.tag} selects every ${element}. `);
+        }
+        if (result === 'unclear' && clarification === 0) {
+          clarification = 1;
+          prompt = 'I’m not certain what you mean yet. Which of these is closest to your thinking?';
+          choices = diagnosticChoices();
+          return view();
+        }
+        if (stage === 'diagnose') return focus(result);
+        return recall();
+      }
+      if (stage === 'recall') {
+        if (selected === 'dot' || (!selected && (String(text).trim() === '.' || /^(?:dot|a dot|period|a period|full stop|a full stop)$/.test(normalise(text))))) {
+          return propose('A dot is the class-selector symbol. ');
+        }
+        return explicit();
+      }
+      if (stage === 'propose') {
+        const result = selectorAnswer(text, name, context.tag);
+        if (result === 'correct') {
+          attempts.push(`Proposed a selector that targets class "${name}".`);
+          return say('test', `That selector targets the ${name} class. Try it in your own project and check the result. Did the change solve the problem?`,
+            [choice('fixed','I fixed it'), choice('stuck','Still stuck')]);
+        }
+        if (result === 'unclear' && clarification === 0) {
+          clarification = 1;
+          prompt = 'I couldn’t read a single selector in that answer. Type only the selector you would try, or choose “Still stuck” for a hint.';
+          return view();
+        }
+        if (level >= 4) return handoff('We’ve tried the class-selector hints, and this still needs checking together.');
+        return level < 3 ? recall() : explicit();
+      }
+      if (stage === 'test') {
+        if (selected === 'fixed' || /^(?:it worked|it works|i fixed it|fixed|yes|yes it worked|now only the warning paragraph is red)$/.test(normalise(text))) return fixed();
+        if (selected === 'stuck' || unsure(text) || /^(?:no|still stuck|it didn't work|didn't work|it did not work|not working)$/.test(normalise(text))) return stuck();
+        if (clarification) return stuck();
+        clarification = 1;
+        prompt = 'I can’t see your project’s result. After you test the change, choose “I fixed it” or “Still stuck” to tell me what happened.';
+        return view();
+      }
+      return view();
+    }
+    return {view, answer, stuck, fixed, handoff};
+  }
+  window.TFC_CLASS_COACH = {getContext, create};
+})();
+
+</script><script>
+/* Bounded heading/text-size coaching. Reads snippets as text; never runs them. */
+(() => {
+  'use strict';
+  const normalise = text => String(text).trim().toLowerCase().replace(/[’‘]/g, "'").replace(/[.!?]+$/g, '').replace(/\s+/g, ' ');
+  const negative = text => /\b(?:not|no|never|isn't|aren't|doesn't|don't|cannot|can't)\b/.test(normalise(text));
+  const uncertain = text => /^(?:i(?:'m| am)?\s+)?(?:not sure|unsure|don't know|do not know|idk|no idea|confused|stuck)/.test(normalise(text));
+  const option = (id, text) => ({id, text});
+  const stripComments = text => text.replace(/\/\*[\s\S]*?\*\//g, '');
+  function attributes(source) {
+    const result = {};
+    const tokens = /([^\s"'<>/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
+    for (const match of source.matchAll(tokens)) result[match[1].toLowerCase()] = match[2] ?? match[3] ?? match[4] ?? '';
+    return result;
+  }
+  function simpleMatch(selector, heading) {
+    if (!heading) return null;
+    const value = selector.trim();
+    if (!/^(?:[a-z][\w-]*|\*)?(?:[.#][a-zA-Z_][\w-]*)*$/.test(value) || !value) return null;
+    const tag = /^[a-z][\w-]*|^\*/.exec(value)?.[0];
+    if (tag && tag !== '*' && tag.toLowerCase() !== heading.tag) return false;
+    const classes = (heading.attrs.class || '').split(/\s+/);
+    return [...value.matchAll(/([.#])([a-zA-Z_][\w-]*)/g)].every(match => match[1] === '.' ? classes.includes(match[2]) : heading.attrs.id === match[2]);
+  }
+  function inspect(goal, actual, html, css, supports = () => undefined, force = false) {
+    const description = `${goal} ${actual}`.toLowerCase();
+    const cleanHtml = html.replace(/<!--[\s\S]*?-->/g, '').replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, '');
+    const headings = [...cleanHtml.matchAll(/<(h[1-6])\b((?:"[^"]*"|'[^']*'|[^'">])*)>/gi)].map(match => ({tag:match[1].toLowerCase(), attrs:attributes(match[2])}));
+    const embedded = [...cleanHtml.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style\s*>/gi)].map(match => match[1]).join('\n');
+    const allCss = stripComments(`${css}\n${embedded}`);
+    const headingWords = /\b(?:headings?|headers?|titles?|h[1-6])\b/.test(description);
+    const sizeWords = /\b(?:siz(?:e|es|ing)|bigger|big|larger|large|smaller|small|tiny|huge|shrink|grow|pixels?|font-size)\b/.test(description);
+    const unchanged = /(?:not|isn't|isn’t|doesn't|doesn’t|won't|won’t|no|nothing).*(?:chang|work|apply|appl|show|happen)|stays? the same/.test(actual.toLowerCase());
+    const connectionRequest = /(?:stylesheet|css file|styles)/.test(description) && /not|isn't|isn’t|doesn't|doesn’t|won't|won’t|no|nothing/.test(actual.toLowerCase());
+    if (!force && !((headingWords || headings.length) && (sizeWords || (unchanged && /font[-_ ]?size/i.test(allCss)))) && !connectionRequest) return null;
+    const named = /\bh[1-6]\b/i.exec(goal)?.[0].toLowerCase();
+    const types = [...new Set(headings.map(item => item.tag))];
+    const heading = headings.find(item => item.tag === named) || (types.length === 1 ? headings[0] : null);
+    const context = {goal, actual, heading, supports, topic:'triage', clue:'', value:'', selector:'', tag:heading?.tag || 'h1', headings:types, source:'unknown', link:'', kind:connectionRequest && !sizeWords ? 'connection' : 'heading'};
+    const link = [...cleanHtml.matchAll(/<link\b((?:"[^"]*"|'[^']*'|[^'">])*)>/gi)].map(match => attributes(match[1])).find(attrs => /(?:^|\s)stylesheet(?:\s|$)/i.test(attrs.rel || ''));
+    context.link = link?.href || '';
+    context.source = heading?.attrs.style ? 'inline' : embedded.trim() && !css.trim() ? 'embedded' : link ? 'file' : 'unknown';
+    if (connectionRequest && !sizeWords) { context.topic = 'connection'; return context; }
+    const rules = [...allCss.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(match => ({selector:match[1].trim(), body:match[2], inline:false})).filter(rule => !rule.selector.startsWith('@'));
+    if (heading?.attrs.style) rules.unshift({selector:heading.tag, body:stripComments(heading.attrs.style), inline:true});
+    const sizeRules = rules.filter(rule => /(?:font[-_ ]?size|text-size|(?:^|;)\s*size\s*:|\bfont\s*:)/i.test(rule.body));
+    const matches = sizeRules.filter(rule => rule.inline || rule.selector.split(',').some(selector => simpleMatch(selector, heading) === true));
+    const relevant = matches.length === 1 ? matches[0] : !heading && sizeRules.length === 1 ? sizeRules[0] : null;
+    const hierarchyIntent = /h[1-6].*(?:h[1-6])|heading (?:number|level)|(?:bigger|larger|smaller).*(?:number|tag)|(?:number|tag).*(?:bigger|larger|smaller)/.test(description);
+    if (hierarchyIntent) { context.topic = 'hierarchy'; return context; }
+    if (relevant && !/@|var\s*\(/i.test(relevant.selector)) {
+      context.selector = relevant.selector;
+      const declarations = relevant.body.split(';').map(text => text.trim()).filter(Boolean);
+      const sized = declarations.find(text => /^font-size\s*:/i.test(text));
+      const invalidSyntax = declarations.find(text => /^font-size\s*(?:=|\s+[-+\d.])|^[-+\d.]+[a-z%]*\s*:\s*font-size\b/i.test(text));
+      const wrongProperty = declarations.find(text => /^(?:text-size|font_size|fontsize|font size|size)\s*:/i.test(text));
+      if (invalidSyntax || (sized && /:\s*[^;]+\s+[a-z-]+\s*:/i.test(sized))) {
+        context.topic = 'syntax'; context.clue = invalidSyntax || sized; return context;
+      }
+      if (wrongProperty) { context.topic = 'property'; context.clue = wrongProperty; return context; }
+      if (sized) {
+        const value = sized.slice(sized.indexOf(':') + 1).trim().replace(/\s*!important\s*$/i, '').trim();
+        context.value = value; context.clue = sized;
+        if (/^[+]?(?:\d*\.)?\d+$/.test(value) && Number(value) !== 0) { context.topic = 'units'; return context; }
+        if (supports('font-size', value) === false) { context.topic = 'invalid'; return context; }
+        if (!unchanged && /(?:\d|\))\s*(?:em|rem|%|vw|vh)$/i.test(value)) { context.topic = 'relative'; return context; }
+        context.topic = unchanged ? 'applied' : 'adjust'; return context;
+      }
+    }
+    if (!matches.length && sizeRules.length === 1 && heading && !/@/.test(allCss) &&
+        sizeRules[0].selector.split(',').every(selector => simpleMatch(selector, heading) === false && !/^(?:html|body|:root)$/.test(selector.trim()))) {
+      context.topic = 'selector'; context.selector = sizeRules[0].selector; return context;
+    }
+    if (unchanged && (sizeRules.length || css.trim() || embedded.trim())) { context.topic = 'applied'; return context; }
+    if (!sizeRules.length && sizeWords && headings.length && (css.trim() || embedded.trim()) && !/\bfont\s*:/i.test(allCss)) { context.topic = 'property'; return context; }
+    return context;
+  }
+
+  function cleanAnswer(text) {
+    return String(text).trim().replace(/^```(?:css)?\s*\n?([\s\S]*?)\n?```$/i, '$1').trim().replace(/^`([^`]+)`$/, '$1').trim();
+  }
+  function declaration(text, context) {
+    let value = cleanAnswer(text);
+    const rule = /^([^{}]+)\{([^{}]*)\}\s*$/.exec(value);
+    if (rule) {
+      if (context.heading && simpleMatch(rule[1], context.heading) !== true) return 'unclear';
+      value = rule[2].trim();
+    }
+    const result = /^font-size\s*:\s*([^;{}]+);?$/i.exec(value);
+    if (!result) return uncertain(value) ? 'unsure' : negative(value) || /\b(?:i|think|maybe|or)\b/.test(normalise(value)) ? 'unclear' : 'wrong';
+    const size = result[1].trim().replace(/\s*!important\s*$/i, '').trim();
+    const supported = context.supports('font-size', size);
+    if (supported === true) return 'correct';
+    if (supported === false) return 'wrong';
+    return /^(?:0|(?:\d*\.)?\d+(?:px|em|rem|%|pt|vw|vh)|small|medium|large|larger|smaller|inherit|initial|unset)$/i.test(size) ? 'correct' : 'unclear';
+  }
+  const labels = {triage:'Sizing: narrowing the problem',property:'CSS font-size property',units:'CSS size units',syntax:'CSS declaration syntax',invalid:'CSS size value',selector:'Heading selector',hierarchy:'Heading meaning and visual size',relative:'Relative text sizes',adjust:'Choosing a text size',applied:'Checking whether styles apply',connection:'Stylesheet connection',cascade:'Competing style rules'};
+  function create(context) {
+    let topic = context.topic, phase = 'coaching', stage = '', prompt = '', choices = [], feedback = '', level = 1, support = 1, clarifications = 0, turns = 0, checkErrors = 0;
+    let reportedFixed = false, verification = 'Not attempted', outcome = 'Exploring the size problem', retry = false;
+    const evidence = [], attempts = [];
+    const tag = context.tag;
+    const genericStyles = context.kind === 'connection';
+    const subject = genericStyles ? 'intended element' : 'heading';
+    const modes = [...(genericStyles?[]:[option('property','Changing the text size'),option('hierarchy','Choosing h1, h2, h3…')]),option('applied','My style changes do nothing'),option('connection','Connecting a CSS file')];
+    function view() { return {phase,stage,level,prompt,choices:choices.map(item=>({...item})),feedback,outcome,verification,reportedFixed,evidence:[...evidence],attempts:[...attempts],pathLabel:`${labels[topic]} — working hypothesis`,checkLabel:'Quick check: a new example',answerPlaceholder:'Type an answer or choose above…'}; }
+    function say(nextStage, text, options = [], nextSupport = support) {
+      stage = nextStage; prompt = text; choices = options; support = nextSupport; level = Math.max(level,support); clarifications = 0; return view();
+    }
+    function handoff(reason = 'This still needs another pair of eyes.') {
+      if (phase === 'done') return view();
+      phase = 'done'; level = 5; outcome = 'Teacher review recommended';
+      if (verification !== 'Not attempted') verification = 'Not confirmed — teacher review recommended';
+      return say('handoff', `${reason} Show your teacher the relevant HTML, the CSS you tried, and the session notes below.`, [], 5);
+    }
+    // FIX 1: units, syntax and hierarchy options are now plain answers without the reasoning.
+    // FIX 5: nudgeOptions are buttons that match the nudge question. Topics without them use typed answers.
+    const configs = {
+      property:{q:'Which CSS property do you think changes the size of the letters?', options:[option('correct','font-size'),option('wrong','font-weight'),option('other','size'),option('unsure','I’m not sure')], accepted:['font-size','font size'], nudge:'Size and thickness are different. Which property changes how large the letters look?', nudgeOptions:[option('wrong','font-weight'),option('correct','font-size'),option('unsure','I’m not sure')], scaffold:'CSS property names describe the feature you want to change. Use font-size for text size.', explicit:'For example, font-size: 24px; sets a text size. Choose a size to try in your own heading rule.'},
+      units:{q:`Your snippet includes “${context.clue}”. Does a nonzero number by itself tell CSS which unit to use?`, options:[option('wrong','Yes'),option('correct','No'),option('unsure','I’m not sure')], accepted:['no','it needs a unit','needs a unit','a unit','px','24px','no it needs a unit','no, it needs a unit'], nudge:'Compare 24 with 24px. Which one names a measurement?', nudgeOptions:[option('wrong','24'),option('correct','24px'),option('unsure','I’m not sure')], scaffold:'A nonzero numeric font size needs a unit, such as px or rem. The unit is part of the value.', explicit:'The pattern is font-size: 24px;. Keep the unit attached to the number; choose the size you want to test.'},
+      syntax:{q:`Look at “${context.clue}”. What separates a CSS property from its value?`, options:[option('correct','A colon :'),option('wrong','An equals sign ='),option('other','Only a space'),option('unsure','I’m not sure')], accepted:[':', 'a colon','colon'], nudge:'HTML attributes and CSS declarations use different punctuation. Which separator belongs in a CSS declaration?', nudgeOptions:[option('wrong','='),option('correct',':'),option('unsure','I’m not sure')], scaffold:'A CSS declaration follows property: value;. A semicolon separates it from the next declaration.', explicit:'A small example is font-size: 24px;. Compare the colon and semicolon with your own rule.'},
+      invalid:{q:`The value “${context.value}” did not pass this browser’s font-size syntax check. What kind of value could you try?`, options:[option('correct','A nonnegative size with a unit'),option('wrong','Any word or number'),option('unsure','I’m not sure')], accepted:['a size with a unit','a nonnegative size with a unit','px','24px'], nudge:'Check the sign, spelling, and spacing in the size. A negative size or a space between the number and unit can make it invalid.', scaffold:'Try a simple value with a number and a unit before adding a more complex expression.', explicit:'For example, font-size: 24px; is a valid declaration. Choose your own size and test it.'},
+      selector:{q:`Your CSS size rule starts with “${context.selector}”, and the heading in your snippet uses <${tag}>. Which HTML element do you want this rule to select?`, options:[option('correct',`The ${tag} heading`),option('wrong','Every paragraph'),option('unsure','I’m not sure')], accepted:[tag,`the ${tag}`,`the ${tag} heading`,`<${tag}>`], nudge:`Compare the selector before { with the heading’s opening tag. Which tag name should the rule match?`, scaffold:`An element selector is the tag name without angle brackets. A selector that names a different tag may style something else.`, explicit:`For all <${tag}> headings, the element selector is ${tag}. A class or ID can narrow the target when needed.`, selector:true},
+      hierarchy:{q:'If a heading looks too small, should its h1–h6 level be chosen just to make the text bigger?', options:[option('wrong','Yes'),option('correct','No'),option('unsure','I’m not sure')], accepted:['no','structure','heading level','the level describes its place in the page','css changes the size'], nudge:'Think about the main heading and a subheading. What should their HTML levels tell someone reading the page?', nudgeOptions:[option('wrong','How big the text looks'),option('correct','How the page is organized'),option('unsure','I’m not sure')], scaffold:'Choose heading levels for the page’s structure. CSS controls how large those headings look.', explicit:'Keep the heading level that fits the content. Adjust font-size in a matching CSS rule to change its visual size.'},
+      relative:{q:/rem/i.test(context.value) ? 'A size written in rem is relative to whose font size?' : /(?:vw|vh)/i.test(context.value) ? 'A size written in vw or vh changes with what?' : 'For font-size, an em or percentage value is relative to whose font size?', options:/rem/i.test(context.value) ? [option('correct','The root html element'),option('wrong','Only the immediate parent'),option('unsure','I’m not sure')] : /(?:vw|vh)/i.test(context.value) ? [option('correct','The browser viewport'),option('wrong','The number of letters'),option('unsure','I’m not sure')] : [option('correct','The parent element'),option('wrong','The number of letters'),option('unsure','I’m not sure')], accepted:/rem/i.test(context.value)?['root','html','the root','the root html element'] : /(?:vw|vh)/i.test(context.value)?['viewport','the viewport','browser viewport','the browser viewport']:['parent','the parent','parent element','the parent element'], nudge:'A relative size depends on another measurement. Identify that reference before changing the number.', scaffold:/rem/i.test(context.value)?'rem uses the root html font size. em and percentages on font-size use the parent font size.':/(?:vw|vh)/i.test(context.value)?'vw uses viewport width, and vh uses viewport height. They can change when the window changes.':'For font-size, em and percentages use the parent font size; rem uses the root html font size.', explicit:'Pick a unit that fits what you want. Try one font-size value, keeping the unit attached, and compare the result.'}
+    };
+    function toTopic(next, note = '') {
+      topic = next; support = 1; feedback = ''; if(note) attempts.push(note);
+      if (next === 'triage') return say('triage',`What is closest to the ${genericStyles?'styling':'heading'} problem you’re trying to solve?`,modes);
+      if (next === 'applied') return say('applied',`Do other styles from the same place as your ${genericStyles?'CSS':'size'} rule show up in the project?`,[option('some','Yes, other styles show up'),option('none','No styles show up'),option('unsure','I’m not sure')]);
+      if (next === 'connection') return say('source','Where did you write the style rule?',[option('file','In a separate CSS file'),option('embedded','Inside a <style> block'),option('inline','In style="…" on the element'),option('unsure','I’m not sure')]);
+      if (next === 'cascade') return say('competing',genericStyles?'Can you find another declaration for the same property that affects this element, including style="…" on the element?':'Can you find another font-size rule for this heading, including style="…" on the heading itself?',[option('found',genericStyles?'Yes, there is another declaration':'Yes, there is another size'),option('missing','I can’t find another one'),option('unsure','I’m not sure')]);
+      if (next === 'adjust') return say('adjust','When you change the font-size value and save, does the heading change size at all?',[option('yes','Yes, but it is still too big or small'),option('no','No, nothing changes'),option('unsure','I haven’t tested that yet')]);
+      const config = configs[next];
+      return say('diagnose', `${next === 'property' && context.clue ? `I noticed “${context.clue}” in the snippet. ` : ''}${config.q}`, [...config.options,option('different','That isn’t my issue')]);
+    }
+    function propose(prefix = '') {
+      return say('propose', `${prefix}${configs[topic]?.selector ? `What selector would you try for your <${tag}> heading? Type only the selector.` : 'What font-size declaration would you try? Type a property and value, such as a size with a unit.'}`);
+    }
+    function testChange(text) {
+      attempts.push('Coach proposed a focused test; the app has not run the student project.');
+      return say('test',text,[option('fixed','I fixed it'),option('stuck','Still stuck'),option('different','That isn’t my issue')]);
+    }
+    function stuck() {
+      if (phase !== 'coaching') return view();
+      if (++turns > 18 || support >= 4) return handoff();
+      if (stage === 'triage') return say('triage','Choose the closest problem below, or ask your teacher to help narrow it down.',modes,support+1);
+      if (configs[topic]) {
+        const config = configs[topic]; support += 1; level = Math.max(level,support);
+        // FIX 5: the nudge shows its own buttons, not the first question's buttons.
+        if(support === 2 && stage !== 'test') return say('diagnose',config.nudge,config.nudgeOptions||[]);
+        if(stage === 'test') return testChange(support === 4 ? `${config.explicit} Test one change in your project. If it still does not help, bring the code to your teacher.` : 'Save the change and check the intended heading. If its appearance does not change at all, choose “That isn’t my issue” and then “My style changes do nothing”.');
+        return propose((support === 3 ? config.scaffold : config.explicit) + ' ');
+      }
+      support += 1; level = Math.max(level,support);
+      if(topic === 'adjust') return testChange('Keep the heading’s HTML level. Change only the number in a valid font-size value, keeping its unit, then compare the result.');
+      if(topic === 'connection') return testChange(support < 4 ? 'If you use a CSS file, compare its saved name and folder with the link href. If the rule is inside HTML, check its spelling and location. Save and refresh, then test one style.' : 'Check the exact stylesheet path and that you saved the file your page uses. A missing <link> in a pasted snippet does not prove the real page has no link. Show your teacher the files if this still fails.');
+      return testChange(support < 4 ? `Check the selector and look for another ${genericStyles?'declaration for the same property':'font-size declaration or font shorthand'} that affects this ${subject}. Change one thing, keep a copy, and test again.` : `A matching rule can be overridden. Ask your teacher to help inspect the ${subject} and check which declarations apply.`);
+    }
+    function unclear() {
+      if (clarifications++ === 0) { feedback = ''; prompt = `I’m not certain what you mean. ${choices.length ? 'Choose the closest answer below, so I don’t guess.' : 'Type just the code requested, or choose “Still stuck” for a hint.'}`; return view(); }
+      return stuck();
+    }
+    function checkSpec() {
+      const size = retry ? 26 : 30, newTag = retry ? 'h4' : 'h3';
+      if(topic === 'selector') return {kind:'selector',prompt:`New example: <${newTag}>Project ideas</${newTag}>. What element selector targets every ${newTag} heading?`,correct:newTag,choices:[]};
+      if(topic === 'hierarchy') return {kind:'choice',prompt:retry ? 'A subheading belongs at h2 but needs larger text. What should you change?' : 'The page’s main heading is correctly marked h1, but it looks too large. What should you change?',correct:'css',choices:[option('css','Its font-size in CSS'),option('level','Its heading level just to change the size'),option('unsure','I’m not sure')]};
+      if(topic === 'connection') return {kind:'choice',prompt:retry ? 'Your CSS file is saved beside the HTML as layout.css. Which link should load it?' : 'Your CSS file is saved beside the HTML as theme.css. Which link should load it?',correct:'link',choices:[option('wrong','<link rel="stylesheet" href="other.css">'),option('link',`<link rel="stylesheet" href="${retry?'layout':'theme'}.css">`),option('unsure','I’m not sure')]};
+      if(topic === 'relative') {
+        const rem = /rem/i.test(context.value), viewport = /(?:vw|vh)/i.test(context.value);
+        if(viewport) return {kind:'choice',prompt:`New example: a heading uses font-size: ${retry?7:4}vw. What measurement is its size based on?`,correct:'base',choices:[option('base','The viewport width'),option('wrong','The number of letters'),option('unsure','I’m not sure')]};
+        const base = retry ? 18 : 16;
+        return {kind:'number',prompt:`${rem?'The root html element':'The parent element'} has font-size: ${base}px. What is ${rem?'2rem':'2em'} as a font size in pixels here?`,correct:String(base*2),choices:[]};
+      }
+      if(topic === 'cascade' || topic === 'applied') return {kind:'choice',prompt:`Two ${newTag} rules are in the same stylesheet, layer, and conditions. Neither uses !important. First is font-size: ${retry?18:20}px; later is font-size: ${retry?26:30}px;. Which value wins between these otherwise identical rules?`,correct:'later',choices:[option('first',`${retry?18:20}px — the first rule`),option('later',`${retry?26:30}px — the later rule`),option('unsure','I’m not sure')]};
+      return {kind:'declaration',prompt:`New example: set a heading’s font size to ${size} pixels. Write just the CSS declaration.`,correct:`font-size:${size}px`,choices:[]};
+    }
+    function askCheck() { const spec = checkSpec(); return say('check-size',spec.prompt,spec.choices); }
+    function fixed() {
+      if (phase !== 'coaching') return view();
+      reportedFixed = true; phase = 'verification'; feedback = ''; verification = 'In progress'; outcome = 'Student reports fixed — checking the idea';
+      attempts.push('Student reported the original issue fixed. The app did not run or inspect the project.');
+      if(topic==='triage') topic='property';
+      return askCheck();
+    }
+    function check(text, selected) {
+      const spec = checkSpec(); let result = 'unclear';
+      const value = cleanAnswer(text);
+      if(selected) result = selected===spec.correct?'correct':'wrong';
+      else if(spec.kind==='declaration') result = /^font-size\s*:\s*(?:30|26)px\s*;?$/i.test(value) ? (value.replace(/[;\s]/g,'').toLowerCase()===spec.correct?'correct':'wrong') : negative(value)||/\b(?:i|think|or|maybe)\b/i.test(value)?'unclear':'wrong';
+      else if(spec.kind==='selector') result = value===spec.correct?'correct':/^[.#\w-]+$/.test(value)?'wrong':'unclear';
+      else if(spec.kind==='number') result = /^(?:\d+(?:\.\d+)?)\s*(?:px|pixels?)?$/i.test(value)? (parseFloat(value)===Number(spec.correct)?'correct':'wrong'):'unclear';
+      else {
+        const normal = normalise(value);
+        const typed = {css:['css','font-size','font-size in css'],link:[`<link rel="stylesheet" href="${retry?'layout':'theme'}.css">`,`href="${retry?'layout':'theme'}.css"`],base:['viewport width','the viewport width'],later:['later','the later rule',`${retry?'26':'30'}px`]};
+        if(typed[spec.correct]?.includes(normal)) result='correct';
+      }
+      if(result==='correct') {
+        evidence.push(`Matched the ${labels[topic]} transfer check (${selected?'selected':'typed'} answer).`);
+        phase='done'; verification=checkErrors?'Passed after a scaffolded retry':'Passed: fresh example'; outcome='Resolved — student reported fixed'; feedback='';
+        return say('resolved','Your answer matches the idea in the new example. You reported that your project is working. You can return to it now.');
+      }
+      if(result==='unclear' && clarifications++===0) { feedback='I couldn’t confidently read that answer. Use the format in the question or choose an answer below. This does not count as an incorrect attempt.'; return view(); }
+      if(++checkErrors>=2) return handoff('The new-example check is still unclear after another try.');
+      retry=true; level=Math.max(level,4); support=Math.max(support,4);
+      const reminders={selector:'An element selector is the tag name without angle brackets.',hierarchy:'Heading levels describe structure. CSS changes visual size.',connection:'The link href must point to the actual CSS file, including its folder.',relative: /(?:vw|vh)/i.test(context.value)?'vw is based on viewport width; vh is based on viewport height.':/rem/i.test(context.value)?'rem uses the root font size. Multiply that size by the number of rem.':'For font-size, em uses the parent size. Multiply that size by the number of em.',cascade:'With identical selectors, importance, layers, and conditions, the later declaration wins.',applied:'With identical selectors, importance, layers, and conditions, the later declaration wins.'};
+      feedback=(reminders[topic]||'A CSS declaration uses property: value;. font-size changes text size; px attaches directly to the number.')+' Try this example.';
+      return askCheck();
+    }
+    function answer(text, selected = null) {
+      if(phase==='done')return view(); if(phase==='verification')return check(text,selected);
+      if(++turns>18)return handoff('We’ve tried several checks without narrowing this down.');
+      feedback=''; const value=normalise(text);
+      if(selected==='different')return toTopic('triage','Student said the suggested issue did not match.');
+      if(stage==='triage')return modes.some(item=>item.id===selected)?toTopic(selected):unclear();
+      if(stage==='diagnose') {
+        const config=configs[topic];
+        const correct=selected==='correct'||(!selected && config.accepted.includes(value));
+        if(correct) { evidence.push(`Recognised the ${labels[topic]} idea (${selected?'selected':'typed'} answer).`);return propose('Let’s use that idea. '); }
+        if(!selected && !uncertain(text) && !['font-weight','size','=','yes'].includes(value))return unclear();
+        return stuck();
+      }
+      if(stage==='propose') {
+        const result=configs[topic]?.selector ? (simpleMatch(cleanAnswer(text),context.heading||{tag,attrs:{}})===true?'correct':negative(text)?'unclear':'wrong') : declaration(text,context);
+        if(result==='correct') { attempts.push(`Student proposed ${configs[topic]?.selector?'a matching simple selector':'a syntactically valid font-size declaration'}.`);return testChange(configs[topic]?.selector?'That selector can match the heading in your snippet. Try it in your project with your size declaration. Does it affect the intended heading?':'That declaration has a valid font-size value. Its actual effect depends on the surrounding page. Try it in your own project, save, and check the heading.'); }
+        return result==='unclear'?unclear():stuck();
+      }
+      if(stage==='adjust') {
+        if(selected==='no'||value==='no')return toTopic('applied','Student reported that changing the size has no effect.');
+        if(selected==='yes'||value==='yes')return testChange('Keep the heading level. Adjust only the font-size value a small amount, keeping its unit. Compare the result in your project; there is no single correct visual size.');
+        if(selected==='unsure'||uncertain(text))return stuck(); return unclear();
+      }
+      if(stage==='applied') {
+        if(selected==='some'||['yes','other styles show up'].includes(value))return toTopic('cascade','Student reports other styles from the same source show up.');
+        if(selected==='none'||['no','no styles show up'].includes(value))return toTopic('connection','Student reports no styles from the source show up; connection is not confirmed.');
+        if(selected==='unsure'||uncertain(text))return say('colour-test',`Try a temporary color change in the same rule, then save and refresh your project. Does the ${subject}’s color change?`, [option('some','Yes, the color changes'),option('none','No, it does not'),option('unsure','I’m not sure')],2);
+        return unclear();
+      }
+      if(stage==='colour-test') {
+        if(selected==='some'||value==='yes')return toTopic('cascade',`Student reports a temporary color test changed the ${subject}.`);
+        if(selected==='none'||value==='no') { if(['inline','embedded'].includes(context.source)) return testChange(`Because the rule is in your HTML, a separate stylesheet link is not needed. Check the style syntax and the ${subject} it applies to, then save and view the same page.`); return toTopic('connection','Color test did not visibly reach the intended element; check source and selector.'); }
+        return selected==='unsure'?stuck():unclear();
+      }
+      if(stage==='source') {
+        if(selected==='file'||['css file','separate css file','external','a separate css file'].includes(value))return say('file-match',`${context.link?`The pasted HTML points to “${context.link}”. `:'The pasted snippet may omit the link, so check your full HTML. '}Does the link href match the saved CSS file name and folder exactly?`,[option('match','They match exactly'),option('different-file','They differ'),option('unsure','I’m not sure')],2);
+        if(selected==='embedded'||selected==='inline'||['inline','style block'].includes(value)) {
+          topic='applied'; context.source=selected||'embedded';
+          return say('colour-test',`A rule inside the HTML does not need a separate stylesheet link. Try a temporary color change in the same rule. After saving and refreshing, does the ${subject}’s color change?`,[option('some','Yes, the color changes'),option('none','No, it does not'),option('unsure','I’m not sure')],2);
+        }
+        return selected==='unsure'?stuck():unclear();
+      }
+      if(stage==='file-match') {
+        if(selected==='different-file')return testChange('Make the link point to the saved CSS file, including its folder. Save both files, refresh the page, and check whether your styles appear.');
+        if(selected==='match')return testChange('Save both files and refresh the page you are actually editing. Check the rule’s selector. Matching file names alone cannot confirm that a stylesheet loaded.');
+        return selected==='unsure'?stuck():unclear();
+      }
+      if(stage==='competing') {
+        if(selected==='found'||value==='yes')return testChange(`Compare the ${genericStyles?'declarations for the same property':'font-size declarations, including any font shorthand or inline style'}. Keep a copy, then temporarily disable one competing declaration and test. Different selectors do not always follow “last rule wins”.`);
+        if(selected==='missing'||selected==='unsure'||['no',"i don't know"].includes(value))return stuck();
+        return unclear();
+      }
+      if(stage==='test') {
+        if(selected==='fixed'||['yes','it worked','it works','i fixed it'].includes(value))return fixed();
+        if(selected==='stuck'||['no','still stuck','it did not work',"it didn't work"].includes(value)||uncertain(text))return stuck();
+        return unclear();
+      }
+      return view();
+    }
+    toTopic(topic);
+    return {view,answer,stuck,fixed,handoff};
+  }
+  window.TFC_SIZE_COACH={inspect,create,simpleMatch};
+})();
+
+</script><script>
+/* Original coaching prompts mapped to the four teacher-supplied Code.org plans. */
+(() => {
+  'use strict';
+  const option = (id,text) => ({id,text});
+  const norm = text => String(text).trim().replace(/[’‘]/g,"'").replace(/^`([^`]+)`$/,'$1').toLowerCase().replace(/[.!?]+$/,'').replace(/\s+/g,' ');
+  const unsure = text => /^(?:i(?:'m| am)?\s+)?(?:not sure|unsure|don't know|do not know|idk|no idea|confused|stuck)/.test(norm(text));
+  // FIX 2: used at the Scaffold level so the Coach describes the idea without stating the full fix.
+  const genericAction = 'Use that idea to make one small change in Web Lab, then compare the preview.';
+  function inspect(input) {
+    const {goal,actual,html,css,lesson='auto'}=input;
+    const text=`${goal} ${actual}`.toLowerCase(), h=html.replace(/<!--[\s\S]*?-->/g,''), c=css.replace(/\/\*[\s\S]*?\*\//g,'');
+    const coreHtml=['2','3','5'].includes(lesson);
+    const mismatch=/<(h[1-6]|p)\b[^>]*>[^<]*<\/(h[1-6]|p)>/i.exec(h);
+    const repeated=/<(h[1-6]|p)\b[^>]*>[^<]*<\1>/i.exec(h);
+    if((mismatch && mismatch[1].toLowerCase()!==mismatch[2].toLowerCase())||repeated) return {...input,topic:'tags',tag:(mismatch||repeated)[1]};
+    if(/<head\b[^>]*>[\s\S]*?<(?:p|h[1-6]|ul|ol)\b[\s\S]*?<\/head>/i.test(h)&&/show|see|appear|missing|blank|text|content/.test(text))return {...input,topic:'body'};
+    if(/list|bullet|numbered|\bli\b|\bul\b|\bol\b/.test(text)||/<(?:ul|ol|li)\b/i.test(h)) {
+      if(/<li\b[^>]*>[^<]*<\/(?:ul|ol)>/i.test(h)||/nest|clos|indent/.test(text))return {...input,topic:'list_nesting'};
+      if(/<(?:ul|ol)\b[^>]*>\s*[^<\s]/i.test(h)||(/<li\b/i.test(h)&&!/<(?:ul|ol)\b/i.test(h)))return {...input,topic:'list_items'};
+      if(/bullet|number|order|list/.test(text))return {...input,topic:'list_type'};
+    }
+    const heading=/heading|header|title|\bh[1-6]\b/.test(text)||/<h[1-6]\b/i.test(h);
+    const sizing=/siz|big|larg|small|tiny|heading number|heading level/.test(text);
+    if(coreHtml&&heading&&sizing)return {...input,topic:'headings'};
+    if(lesson==='auto'&&heading&&sizing&&!c.trim()&&!/font-size|style=|<style\b/i.test(h))return {...input,topic:'heading_context'};
+    if(/same line|one line|new line|line break|press.*enter|separate.*paragraph|paragraph.*together/.test(text))return {...input,topic:'paragraphs'};
+    if(/closing tag|close.*tag|slash|end tag|opening tag/.test(text))return {...input,topic:'tags',tag:/<(h[1-6]|p)\b/i.exec(h)?.[1]||'p'};
+    if(lesson==='5'&&/start|blank|plan|user|needs|idea|whole|entire|what.*(?:write|include|do)|organis|organiz/.test(text))return {...input,topic:'planning'};
+    if(coreHtml&&/colou?r|font-family|css|text-align|underlin|center|centre/.test(text))return {...input,topic:'html_scope'};
+    if(!coreHtml&&c.trim()) {
+      const braces=(c.match(/\{/g)||[]).length!==(c.match(/\}/g)||[]).length;
+      const malformed=/(?:color|font-family|font-size|text-align|text-decoration)\s*=|(?:color|font-family|font-size|text-align|text-decoration)\s+(?:red|blue|green|center|right|left|serif|sans-serif|underline|\d)|\b(?:red|blue|green)\s*:\s*color\b/i.test(c);
+      if(braces||malformed)return {...input,topic:'css_syntax',braces};
+    }
+    let property=null;
+    if(/colou?r|\bred\b|\bblue\b|\bgreen\b/.test(text))property='color';
+    if(/font family|font-family|typeface|font.*(?:look|different|change)/.test(text))property='font-family';
+    if(/center|centre|align/.test(text))property='text-align';
+    if(/underlin|strikethrough|line-through|decorat/.test(text))property='text-decoration';
+    if(!coreHtml&&property) return {...input,topic:'css_text',property};
+    if(!coreHtml&&/html.*css|css.*html|which language|structure.*style|style.*structure/.test(text))return {...input,topic:'roles'};
+    if(coreHtml)return {...input,topic:'html_triage'};
+    return null;
+  }
+  const labels={heading_context:'Heading context',headings:'Heading levels and default appearance',tags:'Matching opening and closing tags',body:'Visible content in body',paragraphs:'Paragraphs and source line breaks',list_type:'Ordered and unordered lists',list_items:'List containers and items',list_nesting:'Nesting list tags',planning:'Planning a page for a user',html_scope:'HTML lesson scope',html_triage:'Narrowing an HTML problem',css_text:'CSS text properties',css_syntax:'CSS rule and declaration syntax',roles:'Content, structure, and style'};
+  function create(context) {
+    // FIX 2: probed records whether the follow-up (nudge) question has been asked.
+    let topic=context.topic,phase='coaching',stage='diagnose',level=1,clarified=false,probed=false,prompt='',choices=[],feedback='',reportedFixed=false,verification='Not attempted',outcome='Exploring the lesson task',errors=0,retry=false,turns=0,delegate=null;
+    const evidence=[],attempts=[];
+    const property=context.property||'color';
+    const aspect={'color':'the text’s colour','font-family':'the font family','text-align':'how text is aligned','text-decoration':'underlining or other text decoration'}[property];
+    // FIX 1: the paragraphs options are plain Yes / No.
+    // FIX 5: nudgeOptions added for paragraphs, body and list_items; other topics use typed answers.
+    const config={
+      headings:{q:'What is this heading’s job in your page?',options:[option('main','The main page title'),option('section','A section or subsection title'),option('unsure','I’m not sure')],accepted:{'main title':'main','the main page title':'main','page title':'main','section':'section','a section title':'section','subheading':'section'},nudge:'Start with the role of the text: is it the title of the whole page, or one part of the page?',scaffold:'In the lesson’s unstyled examples, h1 usually appears larger than h6. The number is a heading level, not a size in pixels.',explicit:'Use h1 for the main title, then appropriate levels for sections and subsections. Match the opening and closing tag numbers.',action:'Compare your heading’s role with its tag level. Change one matching tag pair in Web Lab and look at the preview.'},
+      tags:{q:`What should the name in a closing tag match?`,options:[option('correct','The opening tag for that element'),option('wrong','The next element on the page'),option('unsure','I’m not sure')],accepted:{'opening tag':'correct','the opening tag':'correct'},nudge:'Find where this one element begins and ends. Are the tag names the same?',scaffold:'The closing tag has a slash and the same name as its opening tag.',explicit:'For example: <h2>Club news</h2>. Keep the name and heading number the same in both tags.',action:'Check one opening and closing pair in your snippet. Try the matching pair in Web Lab and compare the preview.'},
+      body:{q:'Where does the main visible content belong in an HTML page?',options:[option('correct','Inside <body>'),option('wrong','Inside <head>'),option('unsure','I’m not sure')],accepted:{'body':'correct','<body>':'correct','in the body':'correct'},nudge:'head stores information about the page. Which section holds the page’s main content?',nudgeOptions:[option('wrong','<head>'),option('correct','<body>'),option('unsure','I’m not sure')],scaffold:'Put visible headings, paragraphs, and lists inside body. head is for information about the page.',explicit:'Check that the content is between <body> and </body> in your full file.',action:'Find the body section in your full HTML. Place one content element there and check Web Lab’s preview.'},
+      paragraphs:{q:'Does pressing Enter in the HTML editor always create a new paragraph in the preview?',options:[option('wrong','Yes'),option('correct','No'),option('unsure','I’m not sure')],accepted:{'no':'correct','paragraph tags':'correct','p tags':'correct','<p>':'correct','p':'correct','p element':'correct','the p element':'correct'},nudge:'The editor’s lines help you read the code. Which HTML element tells the browser that something is a paragraph?',nudgeOptions:[option('wrong','The h1 element'),option('correct','The p element'),option('unsure','I’m not sure')],scaffold:'Ordinary source line breaks do not create paragraph elements. A p element identifies one paragraph.',explicit:'A short example is <p>Club news.</p>. A second paragraph needs its own element.',action:'Mark one paragraph with a matching p tag pair, then add a separate paragraph and compare the preview.'},
+      list_type:{q:'Does the order of these items matter, such as steps in instructions?',options:[option('ordered','Yes — the sequence matters'),option('unordered','No — I want a set of items'),option('unsure','I’m not sure')],accepted:{'yes':'ordered','numbered':'ordered','steps':'ordered','no':'unordered','bullets':'unordered','bullet points':'unordered'},nudge:'Think about whether moving an item would change the meaning. Would numbers help the reader follow a sequence?',scaffold:'ol groups an ordered list; ul groups an unordered list. Each item is still an li element.',explicit:'The outer ol or ul chooses the list type. Put an li element around each item, and close the outer list after the items.',action:'Choose the list container for the meaning you want. Test it with two li items in Web Lab.'},
+      list_items:{q:'What is the job of an li element inside a list?',options:[option('correct','It marks one list item'),option('wrong','It replaces the whole list container'),option('unsure','I’m not sure')],accepted:{'a list item':'correct','one list item':'correct','list item':'correct','li':'correct','<li>':'correct'},nudge:'A list has a container and individual items. Which tag belongs around each item?',nudgeOptions:[option('wrong','<ul>'),option('correct','<li>'),option('unsure','I’m not sure')],scaffold:'ul or ol holds the list. Each item goes inside an li element. A short pasted snippet might leave out the outer container, so check the full HTML too.',explicit:'One item looks like <li>Notebook</li>. Put items inside the appropriate ul or ol container.',action:'Check the container and one item in your full page. Add or repair one li pair and look at the preview.'},
+      list_nesting:{q:'Inside a list, which element should finish first: the current item or the whole list?',options:[option('correct','The current li item'),option('wrong','The whole ul or ol list'),option('unsure','I’m not sure')],accepted:{'li':'correct','</li>':'correct','the item':'correct','the current item':'correct'},nudge:'The item is inside the list. Think about closing the inner element before its container.',scaffold:'Finish the last li item before closing the ul or ol container. Indentation helps people see that relationship; it does not create the relationship by itself.',explicit:'The end of one unordered list can look like </li></ul>. Follow the open tags in your own snippet.',action:'Trace one list from its opening container through the items to its closing container. Check the tag order and test one change.'},
+      planning:{q:'Before coding the whole page, what is the first thing to decide?',options:[option('correct','Who the page is for and what they need'),option('wrong','How many tags I can use'),option('unsure','I’m not sure')],accepted:{'the user':'correct','user needs':'correct','who it is for':'correct'},nudge:'Look at the user description in your project guide. What information is this person looking for?',scaffold:'Choose one user need, sketch a small section, and decide whether its content is a heading, paragraph, or list.',explicit:'Build one section first: a useful title and a small piece of relevant content. Use your assigned project guide and rubric rather than trying to build the entire page at once.',action:'Pick one need from the project guide. Sketch and build just one section that addresses it, then check it against that need. I won’t assess the whole project from this snippet.'},
+      roles:{q:'Which language mainly describes the content’s role and structure?',options:[option('correct','HTML'),option('wrong','CSS'),option('unsure','I’m not sure')],accepted:{'html':'correct'},nudge:'Adding a paragraph and changing its colour are different jobs. Which language identifies the paragraph?',scaffold:'HTML marks content and structure. CSS sets styles such as colour, size, and alignment.',explicit:'Use HTML for a heading or paragraph; use a CSS rule for that element’s appearance.',action:'Choose one change. Decide whether it changes the content/structure or its appearance, and edit the corresponding language.'},
+      css_text:{q:`Which CSS property would you use to change ${aspect}?`,options:[option('correct',property),option('wrong',property==='color'?'font-family':'color'),option('unsure','I’m not sure')],accepted:{[property]:'correct'},nudge:`Find the property for ${aspect} in the lesson’s CSS Properties notes. Which one describes that feature?`,scaffold:`Use ${property}: value; inside the matching selector’s braces. The property names the feature; the value says how to style it.`,explicit:`A small example is ${property}: ${{color:'blue','font-family':'sans-serif','text-align':'center','text-decoration':'underline'}[property]};. Compare the property, colon, value, and semicolon with your rule.`,action:`Try one ${property} declaration inside a rule that selects the intended element. Check Web Lab’s preview. If nothing changes, use the connection check rather than changing random values.`}
+    };
+    config.css_syntax={q:context.braces?'What should surround the declarations belonging to one CSS selector?':'What punctuation separates a CSS property from its value?',options:context.braces?[option('correct','A matching pair of curly braces { }'),option('wrong','HTML angle brackets < >'),option('unsure','I’m not sure')]:[option('correct','A colon :'),option('wrong','An equals sign ='),option('unsure','I’m not sure')],accepted:context.braces?{'{}':'correct','curly braces':'correct','braces':'correct'}:{':':'correct','colon':'correct','a colon':'correct'},nudge:context.braces?'Find the opening brace for the rule. Where does that same rule end?':'Compare the property name and its value. What separator belongs between them in CSS?',scaffold:'A rule has selector { property: value; }. Braces enclose the declarations; colons separate properties from values.',explicit:'For a small example: h2 { color: blue; }. Compare each piece with one rule in your own code.',action:'Check one rule’s matching braces and one declaration’s property, colon, value, and semicolon. Try just that repair in Web Lab.'};
+    const htmlChoices=[option('headings','Headings'),option('paragraphs','Paragraphs or line breaks'),option('list_type','Lists'),option('tags','Opening and closing tags')];
+    function view(){return delegate?delegate.view():{phase,stage,level,prompt,choices:choices.map(item=>({...item})),feedback,reportedFixed,verification,outcome,evidence:[...evidence],attempts:[...attempts],pathLabel:`${labels[topic]}${context.lesson&&context.lesson!=='auto'?` · Lesson ${context.lesson}`:''} — working hypothesis`,checkLabel:'Quick check: a new example',answerPlaceholder:'Type an answer or choose above…'};}
+    function say(next,text,options=[],nextLevel=level){stage=next;prompt=text;choices=options;level=Math.max(level,nextLevel);clarified=false;return view();}
+    function begin(next){topic=next;
+      if(topic==='heading_context')return say('context','Are you working with HTML heading tags, or have you started styling with CSS?', [option('html','HTML headings only'),option('css','I am using CSS too'),option('unsure','I’m not sure')]);
+      if(topic==='html_scope')return say('scope','This lesson focuses on HTML content and structure. Precise colour, font, and alignment changes begin with CSS in Lesson 6. Which HTML part are you working on?',htmlChoices);
+      if(topic==='html_triage')return say('scope','Which part of your HTML is closest to the problem?',htmlChoices);
+      return say('diagnose',config[topic].q,[...config[topic].options,option('different','That isn’t my issue')]);
+    }
+    function handoff(reason='This still needs another pair of eyes.'){
+      if(delegate)return delegate.handoff(reason);if(phase==='done')return view();phase='done';outcome='Teacher review recommended';if(verification!=='Not attempted')verification='Not confirmed — teacher review recommended';
+      return say('handoff',`${reason} Show your partner or teacher the smallest relevant snippet, your expected result, and the session notes. The lesson’s Help and Tips can help you find the tag or property reference.`,[],5);
+    }
+    const cssTopic=()=>['css_text','css_syntax','roles'].includes(topic);
+    function cssChoices(){return say('css-scope','Which part is closest to the problem now?',[option('syntax','The punctuation in my CSS rule'),option('connection','My styles don’t appear'),option('teacher','Something else — ask my teacher')]);}
+    function connectStyles(){
+      const next=window.TFC_SIZE_COACH.inspect(context.goal,context.actual,context.html,context.css,context.supports,true);
+      delegate=window.TFC_SIZE_COACH.create({...next,topic:'connection',kind:'connection'});
+      return delegate.view();
+    }
+    // FIX 2: action is now a parameter, so the Scaffold level can pass the general genericAction
+    // instead of the topic's full fix. Leaving it out uses the topic's own action, as before.
+    function testChange(prefix='',action=config[topic].action){return say('test',prefix+action,[option('fixed','I tried it and made progress'),...(cssTopic()?[option('connection','My styles still don’t appear')]:[]),option('stuck','Still stuck'),option('different','That isn’t my issue')]);}
+    function stuck(){if(delegate)return delegate.stuck();if(phase!=='coaching')return view();if(++turns>16||level>=4)return handoff();level++;
+      if(!config[topic])return say(stage,'Choose the closest option below. If the task is still unclear, check the lesson instructions with your partner or teacher.',choices);
+      // FIX 2: if the follow-up question was already asked, skip straight to the Scaffold level.
+      if(level===2&&probed)level=3;
+      // FIX 5: the nudge shows its own buttons (or none), not the first question's buttons.
+      if(level===2){probed=true;return say('diagnose',config[topic].nudge,config[topic].nudgeOptions||[]);}
+      // FIX 2: Scaffold explains the idea and asks for one small change; only Explicit gives the full fix.
+      if(level===3)return testChange(config[topic].scaffold+' ',genericAction);
+      return testChange(config[topic].explicit+' ');
+    }
+    // FIX 3: two-option checks gain a third plausible distractor (id 'other'). The display code shuffles them.
+    function checkSpec(){
+      if(topic==='headings')return {prompt:retry?'A page has a main title and a section heading. Should every heading be h1 just to make all of them large?':'For an unstyled lesson page, which tag is the usual choice for its main title?',answers:retry?['no','use levels for the structure']:['h1','<h1>'],options:retry?[option('correct','No'),option('wrong','Yes')]:[option('correct','<h1>'),option('wrong','<h6>'),option('other','<p>')]};
+      if(topic==='tags'){const tag=retry?'h4':'h3';return {prompt:`An element opens with <${tag}>. Write its matching closing tag.`,answers:[`</${tag}>`],options:[]};}
+      if(topic==='body')return {prompt:retry?'Where should the visible list of club events go?':'Where should the visible welcome paragraph go?',answers:['body','<body>'],options:[option('correct','Inside <body>'),option('wrong','Inside <head>'),option('other','Inside <title>')]};
+      if(topic==='paragraphs')return {prompt:retry?'Which code marks two separate paragraphs?':'Which code marks Rain and Sun as separate paragraphs?',answers:retry?['<p>one</p><p>two</p>']:['<p>rain</p><p>sun</p>'],options:[option('correct',retry?'<p>One</p><p>Two</p>':'<p>Rain</p><p>Sun</p>'),option('wrong',retry?'One [Enter key] Two':'Rain [Enter key] Sun'),option('other',retry?'<p>One Two</p>':'<p>Rain Sun</p>')]};
+      if(topic==='list_type')return {prompt:retry?'For a set of supplies whose order does not matter, which list container fits?':'For instructions whose steps must stay in sequence, which list container fits?',answers:retry?['ul','<ul>','unordered list']:['ol','<ol>','ordered list'],options:retry?[option('correct','<ul>'),option('wrong','<ol>'),option('other','<li>')]:[option('wrong','<ul>'),option('correct','<ol>'),option('other','<li>')]};
+      if(topic==='list_items')return {prompt:`Inside a list, wrap the item ${retry?'Pencil':'Notebook'} in one li element.`,answers:[`<li>${retry?'pencil':'notebook'}</li>`],options:[]};
+      if(topic==='list_nesting')return {prompt:`The last item is inside a${retry?'n ordered':'n unordered'} list. Which closes first?`,answers:['li','</li>','the item'],options:[option('correct','The </li> item'),option('wrong',retry?'The </ol> container':'The </ul> container'),option('other','Either order works')]};
+      if(topic==='planning')return {prompt:retry?'Before expanding a page, how can you check that its first section is useful?':'You are building a page for a club visitor. What is a useful first step?',answers:['check the user need','user needs'],options:[option('correct',retry?'Compare it with the user’s stated need':'Choose one visitor need and plan a small section'),option('wrong','Add as many unrelated features as possible'),option('other','Pick colours and fonts first')]};
+      if(topic==='roles')return {prompt:retry?'Which language adds a new paragraph as content?':'Which language changes a paragraph’s text colour?',answers:retry?['html']:['css'],options:retry?[option('correct','HTML'),option('wrong','CSS'),option('other','Neither; the browser decides')]:[option('wrong','HTML'),option('correct','CSS'),option('other','Neither; the browser decides')]};
+      if(topic==='css_syntax')return {prompt:retry?'Which rule correctly sets paragraph text to green?':'Which rule correctly sets h2 text to blue?',answers:retry?['p{color:green;}']:['h2{color:blue;}'],compact:true,options:retry?[option('correct','p { color: green; }'),option('wrong','p { color = green; }'),option('other','p { color green }')]:[option('wrong','h2 < color: blue; >'),option('correct','h2 { color: blue; }'),option('other','h2 { color = blue; }')]};
+      const values={color:retry?'green':'blue','font-family':retry?'monospace':'sans-serif','text-align':retry?'right':'center','text-decoration':retry?'line-through':'underline'};
+      const value=values[property];return {prompt:`Write the CSS declaration ${property} with the value ${value}.`,answers:[`${property}:${value}`],options:[],compact:true};
+    }
+    function askCheck(){const spec=checkSpec();return say('check-lesson',spec.prompt,spec.options);}
+    function fixed(){if(delegate)return delegate.fixed();if(phase!=='coaching')return view();if(!config[topic])return handoff('We haven’t narrowed this down to a concept that I can check.');reportedFixed=true;phase='verification';verification='In progress';outcome='Student reports progress — checking one idea';feedback='';attempts.push('Student reported progress in Web Lab; the Coach did not run the code or assess the full task.');return askCheck();}
+    function answer(text,selected=null){if(delegate)return delegate.answer(text,selected);if(phase==='done')return view();if(++turns>20)return handoff();const value=norm(text);
+      if(phase==='verification'){
+        const spec=checkSpec(), normal=spec.compact?value.replace(/\s/g,'').replace(/;$/,''):value.replace(/>\s+</g,'><');
+        if(selected==='correct'||(!selected&&spec.answers.includes(normal))){evidence.push(`Matched a fresh ${labels[topic]} check (${selected?'selected':'typed'} answer).`);verification=errors?'Matched after one scaffolded retry':'Matched a fresh example';outcome=topic==='planning'?'Next step planned — project not assessed':'Student reported progress — concept check matched';phase='done';feedback='';return say('resolved',topic==='planning'?'That is a useful planning move. Build one small section, then compare it with the user’s need and your assigned rubric. I haven’t assessed your full project.':'That matches the idea in the new example. Return to your Web Lab project and keep testing small changes.');}
+        if(!selected&&!clarified){clarified=true;feedback='I couldn’t confirm that wording. Try the requested tag or declaration, or choose an answer below. This does not count as an incorrect attempt.';return view();}
+        if(++errors>=2)return handoff('The fresh-example check is still unclear after another try.');retry=true;level=Math.max(level,3);feedback=config[topic].scaffold+' Try this new example.';return askCheck();
+      }
+      if(selected==='different')return cssTopic()?cssChoices():begin('html_triage');
+      if(selected==='connection'&&cssTopic())return connectStyles();
+      if(stage==='css-scope'){
+        if(selected==='syntax')return begin('css_syntax');
+        if(selected==='teacher')return handoff('This problem needs a closer look at your full project.');
+        return stuck();
+      }
+      if(stage==='context'){
+        if(selected==='html'||value==='html')return begin('headings');
+        if(selected==='css'||value==='css'){const next=window.TFC_SIZE_COACH.inspect(context.goal,context.actual,context.html,context.css,context.supports,true);delegate=window.TFC_SIZE_COACH.create(next);return delegate.view();}
+        return stuck();
+      }
+      if(stage==='scope')return htmlChoices.some(item=>item.id===selected)?begin(selected):stuck();
+      if(stage==='diagnose'){
+        const accepted=selected||config[topic].accepted[value];
+        if(['correct','main','section','ordered','unordered'].includes(accepted)){
+          evidence.push(`Student identified ${accepted==='correct'?labels[topic]:accepted} (${selected?'selected':'typed'} answer).`);
+          // FIX 2: a correct first answer earns a follow-up question before the Coach suggests a change,
+          // so the student names the key idea (for example, the p element) instead of being told it.
+          if(config[topic].nudgeOptions&&!probed){probed=true;return say('diagnose','Good thinking. '+config[topic].nudge,config[topic].nudgeOptions);}
+          const prefix=accepted==='main'?'A main title is usually marked h1 in these unstyled lesson examples. ':accepted==='section'?'Choose a section level that fits under the main title; a subsection can use the next level. ':accepted==='ordered'?'An ordered list fits a sequence. ':accepted==='unordered'?'An unordered list fits a set of items. ':'';
+          return testChange(prefix);
+        }
+        // FIX 5: only point to "options" when buttons are actually showing.
+        if(!selected&&!unsure(text)&&!clarified){clarified=true;prompt=choices.length?'I’m not certain what you mean. Which option is closest to your thinking?':'I’m not certain what you mean. Try naming the tag or property, or choose “Still stuck” for a hint.';return view();}
+        return stuck();
+      }
+      if(stage==='test'){
+        if(selected==='fixed'||['yes','it worked','i fixed it','done'].includes(value))return fixed();
+        if(selected==='stuck'||value==='no'||unsure(text))return stuck();
+        if(!clarified){clarified=true;prompt='Try the change in Web Lab, then choose whether you made progress or are still stuck.';return view();}return stuck();
+      }
+      return view();
+    }
+    begin(topic);return {view,answer,stuck,fixed,handoff};
+  }
+  window.TFC_LESSON_COACH={inspect,create};
+})();
+
+</script><script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const pathways = window.TFC_PATHWAYS;
+  let pathwayKey = 'unclassified', level = 0, phase = 'idle', coachingSession = null, legacyChecks = 0;
+  // FIX 8: names for each support level, shown in the session notes.
+  const levelNames = ['Not started', 'Diagnose', 'Nudge', 'Scaffold', 'Explicit hint', 'Teacher'];
+  function addMessage(role, text) {
+    const box = document.createElement('div');
+    box.className = `message ${role}`;
+    box.textContent = text;
+    $('conversation').appendChild(box);
+  }
+  function progress(process, stage = '') { document.dispatchEvent(new CustomEvent('tfc:progress', {detail:{process, stage}})); }
+  function classify(goalText, actualText, html, css) {
+    const combined = `${goalText} ${actualText}`.toLowerCase(), h = html.toLowerCase(), c = css.toLowerCase();
+    if (/class\s*=/.test(h) && /all.*(paragraph|text)|only.*(one|warning|class)/.test(combined) && /(^|\n|\})\s*[a-z][a-z0-9-]*\s*\{/.test(c)) return 'class_selector_confusion';
+    if (/\{[^}]*\b(red|blue|green|purple|black|white)\s*:\s*(color|background|font-size)/i.test(c)) return 'property_value_confusion';
+    if (/<(h1|h2|h3|p|strong|em|div)[^>]*>[^<]*<\1>/i.test(html)) return 'tag_confusion';
+    if (/<p[^>]*>[^<]*<(strong|em)[^>]*>[^<]*<\/p>\s*<\/\1>/i.test(html)) return 'nesting_confusion';
+    if (/stylesheet|css file|not showing|styles.*not.*working/.test(combined) && /<link/i.test(html)) return 'stylesheet_link_confusion';
+    if (/html.*css|css.*html|which language|structure.*style|style.*structure/.test(combined)) return 'html_css_role_confusion';
+    return 'unclassified';
+  }
+  function updateLevel() {
+    $('levelPill').textContent = `Level ${level}`;
+    // FIX 8: "3 · Scaffold" instead of a bare "3".
+    $('sumSupport').textContent = level ? `${level} · ${levelNames[level] || ''}` : '0';
+  }
+  // FIX 3: Fisher-Yates shuffle for check options, so the correct answer is not always in the
+  // same position. "I'm not sure" stays last. This is O(n) and gives every order equal odds.
+  function shuffleChoices(list) {
+    const items = list.filter(item => item.id !== 'unsure');
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [items[i], items[j]] = [items[j], items[i]];
+    }
+    return items.concat(list.filter(item => item.id === 'unsure'));
+  }
+  function setChoices(containerId, choices, onChoose) {
+    const container = $(containerId);
+    container.replaceChildren(); container.hidden = !choices.length;
+    choices.forEach(item => {
+      const button = document.createElement('button');
+      button.type = 'button'; button.className = 'choice-button'; button.textContent = item.text;
+      button.addEventListener('click', () => onChoose(item)); container.appendChild(button);
+    });
+  }
+  function finishFocus() {
+    $('summaryPanel').open = true;
+    $('summaryToggle').focus({preventScroll:true});
+    $('summaryPanel').scrollIntoView({block:'nearest'});
+  }
+  // FIX 4: show the reflection card after a resolved session.
+  function showReflection() {
+    $('reflectionAnswer').value = '';
+    $('reflectionCard').classList.remove('hidden');
+    $('reflectionCard').scrollIntoView({block:'nearest'});
+    $('reflectionAnswer').focus({preventScroll:true});
+  }
+  function renderSession(view, isFirst = false) {
+    phase = view.phase; level = view.level; updateLevel();
+    const move = phase === 'verification' || phase === 'done' ? 'reflect'
+      : ['test','colour-test'].includes(view.stage) ? 'try'
+      : ['scope','context','css-scope','triage'].includes(view.stage) ? 'define' : 'prepare';
+    progress(move, view.stage);
+    $('sumStatus').textContent = view.outcome;
+    if (view.pathLabel) $('sumHypothesis').textContent = view.pathLabel;
+    $('sumVerification').textContent = view.verification;
+    $('sumEvidence').textContent = view.evidence.join(' ') || 'No evidence recorded yet.';
+    $('sumAttempts').textContent = view.attempts.join(' ') || 'No code change reported yet.';
+    $('responseArea').classList.toggle('hidden', phase !== 'coaching');
+    $('verificationCard').classList.toggle('hidden', phase !== 'verification');
+    const choose = item => {
+      if (!coachingSession || phase === 'done') return;
+      addMessage('student', item.text); $('studentResponse').value = ''; $('verificationAnswer').value = '';
+      renderSession(coachingSession.answer(item.text, item.id));
+    };
+    setChoices('coachingChoices', phase === 'coaching' ? view.choices : [], choose);
+    // FIX 7: if a reply button already offers "Still stuck" or "I fixed it", hide the matching footer button.
+    const offered = phase === 'coaching' ? view.choices.map(item => item.id) : [];
+    $('stuckBtn').hidden = offered.includes('stuck');
+    $('fixedBtn').hidden = offered.includes('fixed');
+    // FIX 3: check options are shuffled before they are shown.
+    setChoices('verificationChoices', phase === 'verification' ? shuffleChoices(view.choices) : [], choose);
+    if (phase === 'coaching') {
+      $('status').textContent = view.stage === 'test' ? 'Time to test your idea' : view.stage === 'diagnose' ? 'Start with what you think' : 'One small step at a time';
+      addMessage('coach', view.prompt);
+      if (!isFirst) $('studentResponse').focus({preventScroll:true});
+    } else if (phase === 'verification') {
+      $('status').textContent = view.checkLabel || (view.stage === 'check-selector' ? 'Quick check: a new selector' : 'Quick check: what does it select?');
+      $('verificationPrompt').textContent = view.prompt; $('verificationResult').textContent = view.feedback;
+      $('verificationAnswer').value = '';
+      $('verificationAnswer').placeholder = view.answerPlaceholder || (view.stage === 'check-selector' ? 'Type a selector…' : 'Type an answer or choose above…');
+
+      if (view.choices.length) $('verificationChoices').querySelector('button').focus({preventScroll:true});
+      else $('verificationAnswer').focus({preventScroll:true});
+      $('verificationCard').scrollIntoView({block:'nearest'});
+    } else {
+      $('status').textContent = view.stage === 'resolved' ? 'Ready to return to your project' : 'Time to check with your teacher';
+      addMessage('coach', view.prompt);
+      // FIX 4: a resolved session goes to Reflect first; a teacher handoff goes straight to the notes.
+      if (view.stage === 'resolved') showReflection(); else finishFocus();
+    }
+  }
+  function askCurrentLevel() {
+    progress('prepare');
+    addMessage('coach', pathways[pathwayKey].levels[Math.min(Math.max(level - 1, 0), 3)]);
+    $('status').textContent = level === 1 ? 'Start with what you think' : 'One small step at a time';
+    $('sumStatus').textContent = level === 1 ? 'Diagnosing' : 'Scaffolding';
+  }
+  function teacherHandoff(reason = 'This still needs another pair of eyes.') {
+    if (phase === 'idle' || phase === 'done') return;
+    if (coachingSession) { renderSession(coachingSession.handoff(reason)); return; }
+    level = 5; phase = 'done'; updateLevel(); progress('reflect', 'handoff');
+    addMessage('coach', `${reason} Show your teacher your code, what you expected to happen, and the session notes below.`);
+    $('status').textContent = 'Time to check with your teacher'; $('sumStatus').textContent = 'Teacher review recommended';
+    $('responseArea').classList.add('hidden'); $('verificationCard').classList.add('hidden'); finishFocus();
+  }
+  function beginVerification() {
+    if (phase !== 'coaching') return;
+    addMessage('student', 'I fixed it.');
+    addMessage('coach', 'You’ve reported that the change worked. Let’s check the idea with a new example.');
+    if (coachingSession) { renderSession(coachingSession.fixed()); return; }
+    if (pathwayKey === 'unclassified') {
+      $('sumVerification').textContent = 'Not checked — no supported concept identified';
+      teacherHandoff('You’ve reported that it works, but I couldn’t identify a supported concept to check.'); return;
+    }
+    phase = 'verification';
+    $('verificationPrompt').textContent = pathways[pathwayKey].verify;
+    $('verificationAnswer').value = ''; $('verificationAnswer').placeholder = 'Your answer'; $('verificationResult').textContent = '';
+    $('verificationCard').classList.remove('hidden'); $('responseArea').classList.add('hidden');
+    $('status').textContent = 'Try a new example'; $('sumStatus').textContent = 'Verification';
+    $('sumAttempts').textContent = 'Student reported a fix. The app has not run the project.';
+    progress('reflect'); $('verificationAnswer').focus();
+  }
+  function clearSessionUI() {
+    $('verificationCard').classList.add('hidden'); $('verificationAnswer').value = ''; $('verificationResult').textContent = '';
+    // FIX 7: footer buttons come back for every new session. FIX 4: reflection card and notes reset.
+    $('studentResponse').value = ''; $('summaryPanel').open = false; $('stuckBtn').hidden = false; $('fixedBtn').hidden = false;
+    $('reflectionCard').classList.add('hidden'); $('reflectionAnswer').value = ''; $('sumReflection').textContent = 'Not written yet';
+    setChoices('coachingChoices', [], () => {}); setChoices('verificationChoices', [], () => {});
+    $('sumEvidence').textContent = 'No evidence recorded yet.'; $('sumAttempts').textContent = 'No code change reported yet.'; legacyChecks = 0;
+  }
+  $('intakeForm').addEventListener('submit', event => {
+    event.preventDefault();
+    if (document.body.dataset.screen !== 'code') return;
+    const goal = $('goal').value.trim(), actual = $('actual').value.trim();
+    if (!goal || !actual) return;
+    clearSessionUI(); $('conversation').replaceChildren();
+    pathwayKey = classify(goal, actual, $('htmlCode').value, $('cssCode').value); coachingSession = null;
+    const input = {goal, actual, html:$('htmlCode').value, css:$('cssCode').value, lesson:$('lessonSelect').value, supports:(property,value) => CSS.supports(property,value)};
+    const lessonContext = window.TFC_LESSON_COACH.inspect(input);
+    const sizeContext = window.TFC_SIZE_COACH.inspect(goal,actual,input.html,input.css,input.supports);
+    const earlyLesson = ['2','3','5'].includes(input.lesson);
+    const structural = lessonContext && !['css_text','roles','css_syntax'].includes(lessonContext.topic);
+    if (structural || earlyLesson) {
+      coachingSession = window.TFC_LESSON_COACH.create(lessonContext || {...input,topic:'html_triage'});
+    } else if (lessonContext?.topic === 'css_syntax') {
+      coachingSession = window.TFC_LESSON_COACH.create(lessonContext);
+    } else if (sizeContext) {
+      coachingSession = window.TFC_SIZE_COACH.create(sizeContext);
+    } else if (pathwayKey === 'class_selector_confusion') {
+      const context = window.TFC_CLASS_COACH.getContext(goal,input.html,input.css);
+      if (context) coachingSession = window.TFC_CLASS_COACH.create(context); else pathwayKey = 'unclassified';
+    } else if (lessonContext) {
+      coachingSession = window.TFC_LESSON_COACH.create(lessonContext);
+    }
+    $('sumLesson').textContent = input.lesson === 'auto' ? 'Not specified / own project' : 'Code.org Lesson ' + input.lesson;
+    level = 1; phase = 'coaching'; updateLevel();
+    $('sumBarrier').textContent = `${goal} — ${actual}`;
+    $('sumHypothesis').textContent = coachingSession ? coachingSession.view().pathLabel || 'Class selectors — working hypothesis' : pathways[pathwayKey].label;
+    $('sumVerification').textContent = 'Not attempted'; $('sumStatus').textContent = 'Diagnosing';
+    $('responseArea').classList.remove('hidden');
+    addMessage('coach', 'Let’s look at your thinking before changing the code.');
+    document.dispatchEvent(new CustomEvent('tfc:started'));
+    if (coachingSession) renderSession(coachingSession.view(), true); else askCurrentLevel();
+    $('studentResponse').focus({preventScroll:true});
+  });
+  $('sendBtn').addEventListener('click', () => {
+    if (phase !== 'coaching') return;
+    const text = $('studentResponse').value.trim(); if (!text) { $('studentResponse').focus(); return; }
+    addMessage('student', text); $('studentResponse').value = '';
+    if (coachingSession) { renderSession(coachingSession.answer(text)); return; }
+    if (level < 4) { level += 1; updateLevel(); askCurrentLevel(); } else teacherHandoff();
+  });
+  $('stuckBtn').addEventListener('click', () => {
+    if (phase !== 'coaching') return;
+    addMessage('student', 'I’m still stuck.');
+    if (coachingSession) { renderSession(coachingSession.stuck()); return; }
+    if (level < 4) { level += 1; updateLevel(); askCurrentLevel(); } else teacherHandoff();
+  });
+  $('fixedBtn').addEventListener('click', beginVerification);
+  $('teacherBtn').addEventListener('click', () => teacherHandoff('You asked for help from your teacher.'));
+  $('verifyTeacherBtn').addEventListener('click', () => teacherHandoff('You asked to check this with your teacher.'));
+  $('verifyBtn').addEventListener('click', () => {
+    if (phase !== 'verification') return;
+    const answer = $('verificationAnswer').value.trim(); if (!answer) { $('verificationAnswer').focus(); return; }
+    addMessage('student', answer);
+    if (coachingSession) { renderSession(coachingSession.answer(answer)); return; }
+    if (pathways[pathwayKey].check(answer)) {
+      phase = 'done'; progress('reflect', 'resolved'); $('verificationCard').classList.add('hidden');
+      addMessage('coach', 'Your answer matches this prototype’s check. You reported that your project is working; return to it, or show your teacher the notes if you want to check your reasoning.');
+      $('sumVerification').textContent = 'Matched the simple V1 answer check';
+      $('sumEvidence').textContent = 'A simple text-pattern check matched the answer; reasoning was not independently evaluated.';
+      $('sumStatus').textContent = 'Student reported fixed — answer pattern matched'; $('status').textContent = 'Check complete';
+      showReflection(); // FIX 4: the older pathways also end with Reflect.
+    } else if (++legacyChecks < 2) {
+      $('verificationResult').textContent = 'I couldn’t confirm that answer with this simple check. Revisit the question and try once more, or ask your teacher to check it with you.';
+      $('sumVerification').textContent = 'Uncertain — retry offered'; $('status').textContent = 'One more check'; $('verificationAnswer').focus();
+    } else {
+      $('sumVerification').textContent = 'Not confirmed — teacher review recommended';
+      teacherHandoff('This simple answer check could not confirm the idea after another try.');
+    }
+  });
+  // FIX 4: saving the reflection adds it to the conversation and the session notes, then opens the notes.
+  $('reflectBtn').addEventListener('click', () => {
+    const text = $('reflectionAnswer').value.trim();
+    if (!text) { $('reflectionAnswer').focus(); return; }
+    addMessage('student', text);
+    addMessage('coach', 'Good plan. That is your first check next time. It is saved in your session notes.');
+    $('sumReflection').textContent = text;
+    $('reflectionCard').classList.add('hidden');
+    finishFocus();
+  });
+  $('resetBtn').addEventListener('click', () => {
+    coachingSession = null; phase = 'idle'; level = 0; pathwayKey = 'unclassified'; clearSessionUI();
+    $('goal').value = 'Show two separate paragraphs'; $('actual').value = 'I pressed Enter, but the text stays on one line';
+    $('htmlCode').value = 'Welcome to our school garden.\nWe grow flowers and vegetables.'; $('cssCode').value = '';
+    $('conversation').replaceChildren(); $('responseArea').classList.add('hidden'); $('status').textContent = 'Ready when you are';
+    $('sumLesson').textContent = 'Not specified / own project'; $('sumBarrier').textContent = '—'; $('sumHypothesis').textContent = '—'; $('sumVerification').textContent = 'Not attempted'; $('sumStatus').textContent = 'Not started';
+    updateLevel(); progress('define');
+  });
+})();
+
+</script><script>
+// Accessible, focused screens. Student data remains in memory for this tab only.
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const steps = [...document.querySelectorAll('.journey li')];
+  let activeLanguage = 'html', started = false;
+  let coachProgress = {process:'prepare', stage:''};
+  const processHints = {
+    define:'Define: spot the difference between your goal and what happens.',
+    prepare:'Prepare: choose one small change and predict what it will do.',
+    try:'Try: test your change in Web Lab, then tell the Coach what happened.',
+    reflect:'Reflect: check the idea with a new example. What did you learn?'
+  };
+  function showProcess(process, hint = processHints[process]) {
+    steps.forEach(step => {
+      const active = step.dataset.process === process;
+      step.classList.toggle('active', active);
+      if (active) step.setAttribute('aria-current', 'step'); else step.removeAttribute('aria-current');
+    });
+    $('processHint').textContent = hint;
+  }
+  function syncProcess() {
+    if (document.body.dataset.screen === 'challenge') return showProcess('define');
+    if (document.body.dataset.screen === 'code') return showProcess('prepare', 'Prepare: find the small piece of code connected to your problem.');
+    const {process, stage} = coachProgress;
+    const hint = stage === 'handoff' ? 'Reflect: use your notes to work out the next step with your teacher.'
+      : stage === 'resolved' ? 'Reflect: write one thing you will check first next time.' : processHints[process];
+    showProcess(process, hint);
+  }
+  document.addEventListener('tfc:progress', event => {
+    coachProgress = event.detail;
+    syncProcess();
+  });
+  function syncLines(type) {
+    const editor = $(type + 'Code');
+    const count = editor.value.split('\n').length;
+    $(type + 'Lines').innerHTML = Array.from({length:count}, (_, i) => i + 1).join('<br>');
+    $(type + 'Lines').scrollTop = editor.scrollTop;
+    if (type === activeLanguage) $('codeStatus').textContent = `${type.toUpperCase()} · ${count} ${count === 1 ? 'line' : 'lines'}`;
+  }
+  function showCode(type, focus = false) {
+    activeLanguage = type;
+    ['html','css'].forEach(language => {
+      const active = language === type;
+      $(language + 'Panel').hidden = !active;
+      $(language + 'Tab').setAttribute('aria-selected', String(active));
+      $(language + 'Tab').tabIndex = active ? 0 : -1;
+    });
+    syncLines(type);
+    if (focus) $(type + 'Tab').focus();
+  }
+  function showScreen(screen, focus = true) {
+    document.body.dataset.screen = screen;
+    ['challenge','code','coach'].forEach(value => $(value + 'Screen').hidden = value !== screen);
+    syncProcess();
+    if (focus) $(screen === 'challenge' ? 'challengeTitle' : screen === 'code' ? 'codeTitle' : 'coachTitle').focus({preventScroll:true});
+    window.scrollTo({top:0});
+  }
+  function validChallenge() {
+    const missing = ['goal','actual'].find(id => !$(id).value.trim());
+    $('intakeError').hidden = !missing;
+    if (missing) {
+      $('intakeError').textContent = missing === 'goal' ? 'Tell me what you’re trying to do first.' : 'Tell me what happens instead, so we can compare.';
+      showScreen('challenge', false); $(missing).focus(); return false;
+    }
+    return true;
+  }
+  $('nextCodeBtn').addEventListener('click', () => { if (validChallenge()) showScreen('code'); });
+  $('backChallengeBtn').addEventListener('click', () => showScreen('challenge'));
+  $('intakeForm').addEventListener('submit', () => { validChallenge(); });
+  document.addEventListener('tfc:started', () => {
+    started = true; coachProgress = {process:'prepare', stage:''}; showScreen('coach'); $('returnCoachBtn').hidden = false;
+    $('startBtn').textContent = 'Restart with these edits →';
+  });
+  $('reviewCodeBtn').addEventListener('click', () => showScreen('code'));
+  $('returnCoachBtn').addEventListener('click', () => showScreen('coach'));
+  $('resetBtn').addEventListener('click', () => {
+    started = false; coachProgress = {process:'prepare', stage:''}; $('lessonSelect').value = '2'; $('returnCoachBtn').hidden = true; $('practiceBanner').hidden = false; $('intakeError').hidden = true;
+    $('startBtn').textContent = 'Start coaching →'; showCode('html'); syncLines('css'); showScreen('challenge');
+  });
+  $('clearBtn').addEventListener('click', () => {
+    const lesson = $('lessonSelect').value;
+    $('resetBtn').click();
+    ['goal','actual','htmlCode','cssCode'].forEach(id => $(id).value = '');
+    $('lessonSelect').value = lesson; $('practiceBanner').hidden = true; syncLines('html'); syncLines('css'); $('goal').focus();
+  });
+  ['html','css'].forEach(type => {
+    $(type + 'Code').addEventListener('input', () => syncLines(type));
+    $(type + 'Code').addEventListener('scroll', () => { $(type + 'Lines').scrollTop = $(type + 'Code').scrollTop; });
+    $(type + 'Tab').addEventListener('click', () => showCode(type));
+    $(type + 'Tab').addEventListener('keydown', event => {
+      if (['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) {
+        event.preventDefault(); showCode(event.key === 'Home' ? 'html' : event.key === 'End' ? 'css' : type === 'html' ? 'css' : 'html', true);
+      }
+    });
+  });
+  // FIX 6: the conversation no longer scrolls inside itself, so bring the newest message into view instead.
+  new MutationObserver(() => { $('conversation').lastElementChild?.scrollIntoView({block:'nearest'}); }).observe($('conversation'), {childList:true});
+  $('studentResponse').addEventListener('keydown', event => {
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) { event.preventDefault(); $('sendBtn').click(); }
+  });
+  $('verificationAnswer').addEventListener('keydown', event => {
+    if (event.key === 'Enter') { event.preventDefault(); $('verifyBtn').click(); }
+  });
+  $('helpBtn').addEventListener('click', () => $('helpDialog').showModal());
+  ['closeHelpBtn','gotItBtn'].forEach(id => $(id).addEventListener('click', () => $('helpDialog').close()));
+  syncLines('html'); syncLines('css'); showScreen('challenge', false);
+})();
+
+</script>
+
+</body>
+</html>
