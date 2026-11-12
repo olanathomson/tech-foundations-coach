@@ -1,0 +1,288 @@
+[
+ {
+  "lesson": "2",
+  "name": "Typo in tag name <hl> (letter L)",
+  "cause": "misspelled tag",
+  "goal": "Make a big heading",
+  "actual": "It shows as normal small text",
+  "html": "<hl>My Pets</hl>\n<p>I have a dog.</p>",
+  "expect": "code-check:unknown_tag"
+ },
+ {
+  "lesson": "2",
+  "name": "Missing closing angle bracket",
+  "cause": "<p missing >",
+  "goal": "Show my paragraph",
+  "actual": "The first words are missing and it looks weird",
+  "html": "<p My dog is named Rex.</p>\n<p>He is brown.</p>",
+  "expect": "code-check:broken_tag"
+ },
+ {
+  "lesson": "2",
+  "name": "Forgot slash in closing tag",
+  "cause": "<p>..<p>",
+  "goal": "Make two paragraphs",
+  "actual": "There is extra space and it looks wrong",
+  "html": "<p>Hello<p>\n<p>World</p>",
+  "expect": "lesson:Matching opening and closing tags"
+ },
+ {
+  "lesson": "2",
+  "name": "Whole page blank",
+  "cause": "content typed inside <head>",
+  "goal": "See my text on the page",
+  "actual": "The page is blank",
+  "html": "<html>\n<head>\n<p>Welcome</p>\n</head>\n<body>\n</body>\n</html>",
+  "expect": "lesson:Visible content in body"
+ },
+ {
+  "lesson": "2",
+  "name": "Wants a line break inside a paragraph",
+  "cause": "needs <br> (not two <p>)",
+  "goal": "Put my address on three lines",
+  "actual": "It is all on one line",
+  "html": "<p>12 Main St\nCalgary\nAlberta</p>",
+  "expect": "lesson:Paragraphs and source line breaks"
+ },
+ {
+  "lesson": "3",
+  "name": "Heading too big, picks tag for size",
+  "cause": "heading level vs size",
+  "goal": "Make my heading smaller",
+  "actual": "It is way too big",
+  "html": "<h1>About me</h1>",
+  "expect": "lesson:Heading levels"
+ },
+ {
+  "lesson": "3",
+  "name": "List items not bulleted",
+  "cause": "li without ul",
+  "goal": "Make a bulleted list",
+  "actual": "No bullets show up",
+  "html": "<li>Apples</li>\n<li>Pears</li>",
+  "expect": "lesson:List containers and items"
+ },
+ {
+  "lesson": "3",
+  "name": "Wants numbers, used ul",
+  "cause": "ol vs ul",
+  "goal": "Number my steps 1 2 3",
+  "actual": "They show as dots",
+  "html": "<ul>\n<li>Mix</li>\n<li>Bake</li>\n</ul>",
+  "expect": "lesson:Ordered and unordered lists"
+ },
+ {
+  "lesson": "3",
+  "name": "Everything after the list is indented/bulleted",
+  "cause": "unclosed </ul>",
+  "goal": "Have a paragraph after my list",
+  "actual": "The paragraph is pushed over like it is in the list",
+  "html": "<ul>\n<li>Apples</li>\n<li>Pears</li>\n<p>Those are fruits.</p>",
+  "expect": "code-check:unclosed"
+ },
+ {
+  "lesson": "3",
+  "name": "Everything on page turned into a heading",
+  "cause": "unclosed <h2>",
+  "goal": "Only the title should be big",
+  "actual": "All of my writing is big and bold",
+  "html": "<h2>My Hobbies\n<p>I like hockey.</p>\n<p>I like art.</p>",
+  "expect": "code-check:unclosed"
+ },
+ {
+  "lesson": "5",
+  "name": "Image not showing",
+  "cause": "wrong src filename",
+  "goal": "Show a picture of my dog",
+  "actual": "There is a broken picture icon",
+  "html": "<img src=\"dog.jpg\">",
+  "expect": "lesson:Narrowing an HTML problem"
+ },
+ {
+  "lesson": "5",
+  "name": "Link does not work",
+  "cause": "missing href",
+  "goal": "Make a link to my other page",
+  "actual": "Clicking it does nothing",
+  "html": "<a>About me</a>",
+  "expect": "lesson:Narrowing an HTML problem"
+ },
+ {
+  "lesson": "5",
+  "name": "Bold text never ends",
+  "cause": "unclosed <strong> nesting",
+  "goal": "Make one word bold",
+  "actual": "The rest of the page is bold",
+  "html": "<p>I <strong>love hockey.</p>\n<p>And art.</p>",
+  "expect": "code-check:unclosed"
+ },
+ {
+  "lesson": "5",
+  "name": "Does not know where to start project",
+  "cause": "planning",
+  "goal": "Start my web page project",
+  "actual": "I do not know what to write",
+  "html": "",
+  "expect": "lesson:Planning a page"
+ },
+ {
+  "lesson": "6",
+  "name": "Colour not changing: missing semicolon chain",
+  "cause": "missing ; between declarations",
+  "goal": "Make my heading blue and centered",
+  "actual": "It turns blue but does not center",
+  "html": "<h1>Hi</h1>",
+  "css": "h1 {\n  color: blue\n  text-align: center;\n}",
+  "expect": "code-check:missing_semicolon"
+ },
+ {
+  "lesson": "6",
+  "name": "Canadian spelling colour",
+  "cause": "colour: is not a property",
+  "goal": "Make the paragraph red",
+  "actual": "Nothing happens the text stays black",
+  "html": "<p>Hello</p>",
+  "css": "p {\n  colour: red;\n}",
+  "expect": "code-check:unknown_property"
+ },
+ {
+  "lesson": "6",
+  "name": "Equals sign instead of colon",
+  "cause": "color = red",
+  "goal": "Make my heading red",
+  "actual": "It stays black",
+  "html": "<h2>News</h2>",
+  "css": "h2 {\n  color = red;\n}",
+  "expect": "lesson:CSS rule and declaration syntax"
+ },
+ {
+  "lesson": "6",
+  "name": "Selector written with angle brackets",
+  "cause": "<h1> { } as selector",
+  "goal": "Make my title green",
+  "actual": "No colour change",
+  "html": "<h1>Title</h1>",
+  "css": "<h1> {\n  color: green;\n}",
+  "expect": "code-check:selector_brackets"
+ },
+ {
+  "lesson": "6",
+  "name": "Missing closing brace cascades",
+  "cause": "missing } after first rule",
+  "goal": "Make paragraphs purple",
+  "actual": "The heading works but the paragraphs do not change",
+  "html": "<h1>Hi</h1>\n<p>Text</p>",
+  "css": "h1 {\n  color: blue;\n\np {\n  color: purple;\n}",
+  "expect": "lesson:CSS rule and declaration syntax"
+ },
+ {
+  "lesson": "6",
+  "name": "Selector does not match any element",
+  "cause": "styles h2, page has h1",
+  "goal": "Make my heading orange",
+  "actual": "It is still black",
+  "html": "<h1>My Page</h1>",
+  "css": "h2 {\n  color: orange;\n}",
+  "expect": "code-check:selector_mismatch"
+ },
+ {
+  "lesson": "6",
+  "name": "Font size with no unit",
+  "cause": "font-size: 30",
+  "goal": "Make my heading bigger",
+  "actual": "The size does not change",
+  "html": "<h1>Hi</h1>",
+  "css": "h1 {\n  font-size: 30;\n}",
+  "expect": "size:CSS size units"
+ },
+ {
+  "lesson": "6",
+  "name": "Font name typo / unquoted multiword",
+  "cause": "font-family: comic sans",
+  "goal": "Change the font to Comic Sans",
+  "actual": "The font looks the same",
+  "html": "<p>Hello</p>",
+  "css": "p {\n  font-family: comicsans;\n}",
+  "expect": "lesson:CSS text properties"
+ },
+ {
+  "lesson": "6",
+  "name": "Wants background colour",
+  "cause": "needs background-color (later lesson)",
+  "goal": "Make the background of the page yellow",
+  "actual": "The words turned yellow instead",
+  "html": "<body><p>Hi</p></body>",
+  "css": "body {\n  color: yellow;\n}",
+  "expect": "scripted:unclassified"
+ },
+ {
+  "lesson": "6",
+  "name": "CSS typed into the HTML file",
+  "cause": "CSS in wrong file",
+  "goal": "Make my text red",
+  "actual": "The code shows up on my page as words",
+  "html": "<p>Hello</p>\np { color: red; }",
+  "css": "",
+  "expect": "code-check:css_in_html"
+ },
+ {
+  "lesson": "6",
+  "name": "Stylesheet not linked",
+  "cause": "href mismatch",
+  "goal": "Use my styles",
+  "actual": "None of my css is working",
+  "html": "<link rel=\"stylesheet\" href=\"styles.css\">\n<h1>Hi</h1>",
+  "css": "h1 { color: red; }",
+  "expect": "size:Stylesheet connection"
+ },
+ {
+  "lesson": "auto",
+  "name": "Only one paragraph should be red",
+  "cause": "needs class selector",
+  "goal": "Make only the warning paragraph red",
+  "actual": "All the paragraphs turn red",
+  "html": "<p class=\"warning\">Careful!</p>\n<p>Normal text</p>",
+  "css": "p {\n  color: red;\n}",
+  "expect": "class:"
+ },
+ {
+  "lesson": "auto",
+  "name": "Class selector missing dot",
+  "cause": "warning { } without dot",
+  "goal": "Make the warning paragraph red",
+  "actual": "Nothing changes",
+  "html": "<p class=\"warning\">Careful!</p>",
+  "css": "warning {\n  color: red;\n}",
+  "expect": "code-check:class_dot"
+ },
+ {
+  "lesson": "auto",
+  "name": "Image too big",
+  "cause": "needs width (later lesson)",
+  "goal": "Make my picture smaller",
+  "actual": "It covers the whole screen",
+  "html": "<img src=\"cat.png\">",
+  "css": "",
+  "expect": "scripted:unclassified"
+ },
+ {
+  "lesson": "auto",
+  "name": "Vague report",
+  "cause": "unknown",
+  "goal": "make it work",
+  "actual": "its broken",
+  "html": "<h1>Hi<h1>",
+  "css": "",
+  "expect": "lesson:Matching opening and closing tags"
+ },
+ {
+  "lesson": "auto",
+  "name": "Vague report, no code",
+  "cause": "unknown",
+  "goal": "fix my website",
+  "actual": "idk it doesnt work",
+  "html": "",
+  "css": "",
+  "expect": "scripted:unclassified"
+ }
+]

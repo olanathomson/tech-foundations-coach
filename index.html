@@ -20,6 +20,11 @@
   FIX 6  One scrollbar: the conversation grows with the page instead of scrolling inside it.
   FIX 7  No duplicate "Still stuck" / "I fixed it": footer buttons hide when a reply button offers them.
   FIX 8  Session notes name the support level (e.g. "3 · Scaffold").
+  FIX 10 Code check: the Coach reads the pasted snippet first (unknown tag names, a missing bracket,
+         an element left open, CSS typed into HTML, a missing semicolon, a property or selector that
+         matches nothing). It names a line and asks a question; it still does not state the fix early.
+         Search for TFC_LINT_COACH and TFC_ROUTER.
+  FIX 11 Session notes can be copied, printed, or downloaded as a small file with no name and no code.
   FIX 9  Clipboard: no code in this file writes to the clipboard; the behaviour comes from the
          Google Sites embed wrapper, so no change is needed here.
 -->
@@ -170,6 +175,15 @@ details[open] .summary-plus{transform:rotate(45deg)}
 .summary dt{color:var(--muted)}
 .summary dd{margin:0;color:var(--accent-dark);overflow-wrap:anywhere}
 .notes-tip{font-size:11px;color:var(--muted);margin:12px 0 20px;line-height:1.7}
+.notes-actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 0}
+.notes-actions .secondary{font-size:12px;padding:8px 14px;min-height:40px}
+#notesStatus:empty{display:none}
+@media print{
+  .topbar,.process-guide,#intakeForm,.coach-panel,.session-tools,.notes-actions,#notesStatus,.skip-link,dialog{display:none!important}
+  #coachScreen[hidden]{display:block!important}
+  .summary-panel{box-shadow:none;border:0;padding:0;margin:0}
+  .summary-plus{display:none}
+}
 .session-tools{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:17px 4px 25px;font-size:11px;color:var(--muted)}
 .session-tools .text-button{font-size:11px;color:var(--muted);font-weight:400;text-decoration:underline;text-underline-offset:3px}
 .session-tools>span{font-size:11px}
@@ -326,7 +340,7 @@ We grow flowers and vegetables.</textarea></div>
 <!-- FIX 4: Reflect step. Shown after a resolved session; the answer is saved to the session notes. -->
 <section id="reflectionCard" class="verification hidden" aria-labelledby="reflectionTitle"><span class="check-label">REFLECT</span><h2 id="reflectionTitle">What did you learn?</h2><p class="verification-prompt">Next time something like this happens, what will you check first?</p><label for="reflectionAnswer">Your reflection</label><textarea id="reflectionAnswer" rows="2" placeholder="One sentence is enough…"></textarea><div class="verify-actions"><button type="button" id="reflectBtn" class="primary">Save to my notes <span aria-hidden="true">→</span></button></div></section>
 </div>
-<details id="summaryPanel" class="panel summary-panel"><summary id="summaryToggle"><span>Session notes <small>For you and your teacher</small></span><span class="summary-plus" aria-hidden="true">＋</span></summary><dl class="summary"><div><dt>Lesson</dt><dd id="sumLesson">Not specified / own project</dd></div><div><dt>Challenge</dt><dd id="sumBarrier">—</dd></div><div><dt>Possible pathway</dt><dd id="sumHypothesis">—</dd></div><div><dt>Highest support level</dt><dd id="sumSupport">0</dd></div><div><dt>Understanding check</dt><dd id="sumVerification">Not attempted</dd></div><div><dt>Evidence</dt><dd id="sumEvidence">No evidence recorded yet.</dd></div><div><dt>Attempts &amp; reported result</dt><dd id="sumAttempts">No code change reported yet.</dd></div><div><dt>Reflection</dt><dd id="sumReflection">Not written yet</dd></div><div><dt>Outcome</dt><dd id="sumStatus">Not started</dd></div></dl><p class="notes-tip">Show these notes to your teacher if you need help. They clear when you reset or reload.</p></details>
+<details id="summaryPanel" class="panel summary-panel"><summary id="summaryToggle"><span>Session notes <small>For you and your teacher</small></span><span class="summary-plus" aria-hidden="true">＋</span></summary><dl class="summary"><div><dt>Lesson</dt><dd id="sumLesson">Not specified / own project</dd></div><div><dt>Challenge</dt><dd id="sumBarrier">—</dd></div><div><dt>Possible pathway</dt><dd id="sumHypothesis">—</dd></div><div><dt>Highest support level</dt><dd id="sumSupport">0</dd></div><div><dt>Understanding check</dt><dd id="sumVerification">Not attempted</dd></div><div><dt>Evidence</dt><dd id="sumEvidence">No evidence recorded yet.</dd></div><div><dt>Attempts &amp; reported result</dt><dd id="sumAttempts">No code change reported yet.</dd></div><div><dt>Reflection</dt><dd id="sumReflection">Not written yet</dd></div><div><dt>Outcome</dt><dd id="sumStatus">Not started</dd></div></dl><div class="notes-actions"><button type="button" id="copyNotesBtn" class="secondary">Copy notes</button><button type="button" id="printNotesBtn" class="secondary">Print notes</button><button type="button" id="downloadNotesBtn" class="secondary">Download for my teacher</button></div><p id="notesStatus" class="notes-tip" role="status"></p><p class="notes-tip">Show these notes to your teacher if you need help. They clear when you reset or reload, so copy, print, or download them first if you want to keep them. The download leaves out your name and your code.</p></details>
 </section>
 <div class="session-tools"><button type="button" id="resetBtn" class="text-button">Start over with the practice example</button><span>Your code stays in this tab.</span></div>
 </main>
@@ -1118,20 +1132,317 @@ window.TFC_PATHWAYS = {
 })();
 
 </script><script>
+/* Code check (November 2026). Reads the pasted snippet before the keyword router runs.
+   Each finding names a line and a concept; the Coach still asks before it tells.
+   One pass over the tags and one pass over the rules: O(n) in the length of the snippet. */
 (() => {
   'use strict';
-  const $ = id => document.getElementById(id);
-  const pathways = window.TFC_PATHWAYS;
-  let pathwayKey = 'unclassified', level = 0, phase = 'idle', coachingSession = null, legacyChecks = 0;
-  // FIX 8: names for each support level, shown in the session notes.
-  const levelNames = ['Not started', 'Diagnose', 'Nudge', 'Scaffold', 'Explicit hint', 'Teacher'];
-  function addMessage(role, text) {
-    const box = document.createElement('div');
-    box.className = `message ${role}`;
-    box.textContent = text;
-    $('conversation').appendChild(box);
+  const option = (id, text) => ({id, text});
+  const norm = text => String(text).trim().replace(/[’‘]/g, "'").replace(/^`([^`]+)`$/, '$1').toLowerCase().replace(/[.!?]+$/, '').replace(/\s+/g, ' ');
+  const unsure = text => /^(?:i(?:'m| am)?\s+)?(?:not sure|unsure|don't know|do not know|dunno|idk|no idea|confused|stuck)/.test(norm(text));
+  const genericAction = 'Use that idea to make one small change in Web Lab, then compare the preview.';
+  const KNOWN_TAGS = new Set('html head body title meta link style script h1 h2 h3 h4 h5 h6 p br hr ul ol li a img div span strong em b i u s small mark sub sup blockquote q cite code pre table thead tbody tfoot tr td th caption form input button label select option textarea header footer nav main section article aside figure figcaption video audio source iframe canvas svg details summary dl dt dd abbr address del ins kbd time'.split(' '));
+  const VOID = new Set(['br', 'hr', 'img', 'meta', 'link', 'input', 'source']);
+  const INLINE = new Set(['strong', 'em', 'b', 'i', 'u', 'a', 'span', 'small', 'mark']);
+  const BLOCK = new Set(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'div', 'section', 'header', 'footer', 'main']);
+  const isHeading = name => /^h[1-6]$/.test(name);
+  const isList = name => name === 'ul' || name === 'ol';
+  // Blanking keeps every character position, so line numbers still match the student's editor.
+  const blank = text => text.replace(/[^\n]/g, ' ');
+  const lineOf = (text, index) => text.slice(0, index).split('\n').length;
+  const tagHint = name => /^h[il]$/.test(name) ? 'h1' : ['paragraph', 'para'].includes(name) ? 'p' : name === 'bold' ? 'strong' : name === 'list' ? 'ul or ol' : '';
+
+  function lintHtml(source, deferUnclosed) {
+    const html = source.replace(/<!--[\s\S]*?-->/g, blank).replace(/(<(style|script)\b[^>]*>)([\s\S]*?)(<\/\2\s*>)/gi, (all, open, name, body, close) => open + blank(body) + close);
+    const broken = /<(\/?)([a-z][a-z0-9]*)\b[^<>]*(?=<|$)/i.exec(html);
+    if (broken) return {topic:'broken_tag', name:broken[2].toLowerCase(), closing:Boolean(broken[1]), line:lineOf(html, broken.index)};
+    const tokens = [...html.matchAll(/<(\/?)([a-z][a-z0-9-]*)\b[^<>]*>/gi)].map(match => ({close:Boolean(match[1]), name:match[2].toLowerCase(), index:match.index}));
+    const unknown = tokens.find(token => !KNOWN_TAGS.has(token.name));
+    if (unknown) return {topic:'unknown_tag', name:unknown.name, hint:tagHint(unknown.name), line:lineOf(html, unknown.index)};
+    const textOnly = html.replace(/<[^<>]*>/g, blank);
+    const stray = /(^|\n)[ \t]*([.#]?[a-z][\w-]*(?:\s*,\s*[.#]?[a-z][\w-]*)*)\s*\{[^{}<]*:[^{}<]*\}/i.exec(textOnly);
+    if (stray) return {topic:'css_in_html', line:lineOf(textOnly, stray.index + stray[1].length)};
+    if (deferUnclosed) return null;
+    const stack = [];
+    const unclosed = item => ({topic:'unclosed', tag:item.name, line:lineOf(html, item.index)});
+    for (const token of tokens) {
+      if (VOID.has(token.name)) continue;
+      let top = stack[stack.length - 1];
+      if (!token.close) {
+        if (top && (isHeading(top.name) || INLINE.has(top.name)) && BLOCK.has(token.name)) return unclosed(top);
+        if (top && isList(top.name) && token.name !== 'li') return unclosed(top);
+        // p and li may legally end when the next block or item begins.
+        if (top && top.name === 'p' && BLOCK.has(token.name)) stack.pop();
+        top = stack[stack.length - 1];
+        if (top && top.name === 'li' && token.name === 'li') stack.pop();
+        stack.push(token);
+      } else {
+        let at = -1;
+        for (let i = stack.length - 1; i >= 0; i--) if (stack[i].name === token.name) { at = i; break; }
+        if (at < 0) continue; // A stray closing tag usually means the snippet started part-way through.
+        const left = stack.slice(at + 1).reverse().find(item => isHeading(item.name) || INLINE.has(item.name) || isList(item.name));
+        if (left) return unclosed(left);
+        stack.length = at;
+      }
+    }
+    const open = stack.find(item => isHeading(item.name) || INLINE.has(item.name));
+    return open ? unclosed(open) : null;
   }
-  function progress(process, stage = '') { document.dispatchEvent(new CustomEvent('tfc:progress', {detail:{process, stage}})); }
+
+  function lintCss(source, htmlSource, supports, skipProperties) {
+    const css = source.replace(/\/\*[\s\S]*?\*\//g, blank);
+    if (!css.trim()) return null;
+    const html = htmlSource.replace(/<!--[\s\S]*?-->/g, blank);
+    const elements = [...html.matchAll(/<([a-z][a-z0-9-]*)\b([^<>]*)>/gi)].map(match => ({name:match[1].toLowerCase(), attrs:match[2]}));
+    const present = [...new Set(elements.map(item => item.name))].filter(name => !['html', 'head', 'body', 'title', 'meta', 'link', 'style'].includes(name));
+    const classes = new Set(elements.flatMap(item => (/(?:^|\s)class\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(item.attrs) || []).slice(1).filter(Boolean).join(' ').split(/\s+/)).filter(Boolean));
+    const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(match => {
+      const lead = match[1].length - match[1].trimStart().length;
+      return {selector:match[1].trim(), body:match[2], line:lineOf(css, match.index + lead), bodyStart:match.index + match[1].length + 1};
+    });
+    const findings = {};
+    const keep = (topic, detail) => { if (!findings[topic]) findings[topic] = {topic, ...detail}; };
+    for (const rule of rules) {
+      const bracket = /^<\/?([a-z][a-z0-9]*)\s*\/?>$/i.exec(rule.selector);
+      if (bracket) keep('selector_brackets', {tag:bracket[1].toLowerCase(), line:rule.line});
+      let offset = 0;
+      for (const chunk of rule.body.split(';')) {
+        const start = rule.bodyStart + offset + (chunk.length - chunk.trimStart().length);
+        offset += chunk.length + 1;
+        if (!chunk.trim()) continue;
+        if (/:[^:]*\n\s*[a-z-]+\s*:/i.test(chunk)) keep('missing_semicolon', {line:lineOf(css, start)});
+        const name = /^\s*([a-z_][\w -]*?)\s*:/i.exec(chunk)?.[1].toLowerCase();
+        if (name && !skipProperties && (/\s/.test(name) || !supports(name, 'inherit'))) keep('unknown_property', {prop:name, line:lineOf(css, start)});
+      }
+      if (!present.length || !/^[a-z][\w-]*$/i.test(rule.selector)) continue;
+      const selector = rule.selector.toLowerCase();
+      if (classes.has(rule.selector) && !present.includes(selector)) keep('class_dot', {name:rule.selector, line:rule.line});
+      else if (KNOWN_TAGS.has(selector) && !['html', 'body', 'head'].includes(selector) && !present.includes(selector)) keep('selector_mismatch', {tag:selector, present:present.slice(0, 3), line:rule.line});
+    }
+    return ['selector_brackets', 'missing_semicolon', 'unknown_property', 'class_dot', 'selector_mismatch'].map(topic => findings[topic]).find(Boolean) || null;
+  }
+
+  // lessonTopic and hasSize come from the existing coaches, so their specific detections keep priority.
+  function inspect(input, {lessonTopic = '', hasSize = false} = {}) {
+    const html = input.html || '', css = input.css || '';
+    const htmlFinding = lintHtml(html, ['tags', 'body'].includes(lessonTopic));
+    if (htmlFinding) return htmlFinding;
+    if (lessonTopic === 'css_syntax') return null;
+    return lintCss(css, html, input.supports || (() => true), hasSize);
+  }
+
+  const TOPICS = {
+    unknown_tag: f => ({
+      label:'Tag names the browser recognises',
+      q:`Look at line ${f.line} of your HTML. Read the tag name inside the angle brackets one character at a time. Is it a tag from your lessons?`,
+      options:[option('correct', 'No, something looks different'), option('wrong', 'Yes, it is a lesson tag'), option('unsure', 'I’m not sure')], accepted:{'no':'correct'},
+      nudge:`The browser only knows tag names that are spelled exactly. Compare the tag on line ${f.line} with the tag list in the lesson’s Help and Tips. Which character is different?`,
+      scaffold:'A tag name the browser does not recognise is ignored, so its text shows as plain text. Some characters look alike, such as the letter l and the digit 1.',
+      explicit:`On line ${f.line} the tag is written “${f.name}”. That is not an HTML tag name. ${f.hint ? `You may have meant ${f.hint}.` : 'Choose the tag you meant from the lesson’s tag list.'} Use the same name in the opening and closing tags.`,
+      action:'Correct one tag name in Web Lab, in both the opening and the closing tag, then compare the preview.',
+      check:retry => retry
+        ? {prompt:'<paragraph>Hello</paragraph> shows the word, but with no paragraph spacing. What should change?', answers:[], options:[option('correct', 'Use the tag name p'), option('wrong', 'Add a second closing tag'), option('other', 'Write the tag in capital letters')]}
+        : {prompt:'A student writes <headline>Club news</headline> and it shows as plain text. Why?', answers:[], options:[option('correct', 'headline is not an HTML tag name'), option('wrong', 'Headings need CSS before they show'), option('other', 'The closing tag should not have a slash')]}
+    }),
+    broken_tag: f => ({
+      label:'Complete tags with both angle brackets',
+      q:`Look at the tag on line ${f.line}. Which characters mark where a tag begins and where it ends?`,
+      options:[option('correct', 'An opening < and a closing >'), option('wrong', 'A slash at each end'), option('unsure', 'I’m not sure')], accepted:{'< and >':'correct', '<>':'correct', 'angle brackets':'correct', '< >':'correct'},
+      nudge:`Every tag sits between a pair of angle brackets. Trace the tag on line ${f.line} from its < to its >. What do you find?`,
+      nudgeOptions:[option('wrong', 'Both brackets are there'), option('correct', 'One of the brackets is missing'), option('unsure', 'I’m not sure')],
+      scaffold:'When a tag has no closing >, the browser treats the words that follow as part of the tag, so some of your text can disappear.',
+      explicit:`The ${f.closing ? '</' : '<'}${f.name} tag on line ${f.line} has no closing >. Add it straight after the tag name.`,
+      action:'Complete one tag in Web Lab and compare the preview.',
+      check:retry => retry
+        ? {prompt:'Which line is a complete heading element?', answers:['<h2>club news</h2>'], options:[option('correct', '<h2>Club news</h2>'), option('wrong', '<h2 Club news</h2>'), option('other', '<h2>Club news</h2')]}
+        : {prompt:'Which line is a complete paragraph element?', answers:['<p>game on friday</p>'], options:[option('correct', '<p>Game on Friday</p>'), option('wrong', '<p Game on Friday</p>'), option('other', '<p>Game on Friday</p')]}
+    }),
+    unclosed: f => ({
+      label:'Closing an element where it should end',
+      q:`Your ${f.tag} element starts on line ${f.line}. Where does it end?`,
+      options:[option('correct', 'I can’t find its closing tag'), option('wrong', 'It ends by itself at the end of the line'), option('unsure', 'I’m not sure')], accepted:{'it does not':'correct', "it doesn't":'correct', 'nowhere':'correct', 'no closing tag':'correct'},
+      nudge:`The browser keeps an element open until it meets the matching closing tag. What do you notice about the content that comes after line ${f.line}?`,
+      nudgeOptions:[option('correct', 'It is treated as part of the same element'), option('wrong', 'It is not affected'), option('unsure', 'I’m not sure')],
+      scaffold:'An element stays open until its closing tag. Everything written before that closing tag counts as inside the element, which is why its style spreads.',
+      explicit:`Add </${f.tag}> at the point where that element should finish. The closing tag needs a slash and the same name as the opening tag.`,
+      action:'Close one element in Web Lab and compare the preview.',
+      check:retry => retry
+        ? {prompt:'Which code keeps only the title inside the heading?', answers:['<h2>news</h2><p>game on friday</p>'], options:[option('correct', '<h2>News</h2><p>Game on Friday</p>'), option('wrong', '<h2>News<p>Game on Friday</p>'), option('other', '<h2>News<p>Game on Friday</p></h2>')]}
+        : {prompt:'Every paragraph after the word “Notice” shows in bold. What is the most likely cause?', answers:[], options:[option('correct', 'A strong element was never closed'), option('wrong', 'Each paragraph needs its own CSS'), option('other', 'Bold text always runs to the end of a page')]}
+    }),
+    css_in_html: f => ({
+      label:'Where CSS rules belong',
+      q:`Line ${f.line} of your HTML looks like a style rule. Which language are style rules written in?`,
+      options:[option('correct', 'CSS'), option('wrong', 'HTML'), option('unsure', 'I’m not sure')], accepted:{'css':'correct'},
+      nudge:'Your project has a separate place for each language. Where do CSS rules go in Web Lab?',
+      nudgeOptions:[option('wrong', 'Anywhere in the HTML file'), option('correct', 'In the CSS file'), option('unsure', 'I’m not sure')],
+      scaffold:'The browser treats anything in the HTML file that is outside a tag as words to display. That is why a rule can appear on the page as text.',
+      explicit:`Move the rule on line ${f.line} out of the HTML file and into your CSS file.`,
+      action:'Move one rule to the place where CSS belongs, then compare the preview.',
+      check:retry => retry
+        ? {prompt:'A student sees h1 { color: blue; } printed on their page as words. What happened?', answers:[], options:[option('correct', 'The rule was typed in the HTML file'), option('wrong', 'The colour blue is misspelled'), option('other', 'An h1 cannot be styled')]}
+        : {prompt:'Where does the rule p { color: red; } belong?', answers:['css', 'the css file', 'in the css file'], options:[option('correct', 'In the CSS file'), option('wrong', 'Between two paragraphs in the HTML file'), option('other', 'Inside the <title> element')]}
+    }),
+    selector_brackets: f => ({
+      label:'Writing a CSS selector',
+      q:'In a CSS rule, how do you write the selector for an element?',
+      options:[option('correct', 'The tag name alone, like p'), option('wrong', 'The tag with angle brackets, like <p>'), option('unsure', 'I’m not sure')], accepted:{'tag name':'correct', 'the tag name':'correct', 'just the tag name':'correct'},
+      nudge:`Angle brackets belong to one of your two languages. Look at the selector on line ${f.line} of your CSS. Which language is it written in?`,
+      nudgeOptions:[option('wrong', 'CSS'), option('correct', 'HTML'), option('unsure', 'I’m not sure')],
+      scaffold:'HTML marks an element with angle brackets. CSS selects that element with the tag name alone, followed by braces.',
+      explicit:`Write the selector on line ${f.line} as ${f.tag} with no angle brackets, and keep your declarations inside the braces.`,
+      action:'Rewrite one selector in Web Lab and compare the preview.',
+      check:retry => retry
+        ? {prompt:'Which rule makes paragraph text green?', answers:['p{color:green}'], compact:true, options:[option('correct', 'p { color: green; }'), option('wrong', '<p> { color: green; }'), option('other', '</p> { color: green; }')]}
+        : {prompt:'Which rule makes h2 text blue?', answers:['h2{color:blue}'], compact:true, options:[option('correct', 'h2 { color: blue; }'), option('wrong', '<h2> { color: blue; }'), option('other', '</h2> { color: blue; }')]}
+    }),
+    missing_semicolon: f => ({
+      label:'Ending each CSS declaration',
+      q:`Look at line ${f.line} of your CSS. What marks the end of one declaration before the next one begins?`,
+      options:[option('correct', 'A semicolon ;'), option('wrong', 'A new line'), option('other', 'A comma ,'), option('unsure', 'I’m not sure')], accepted:{';':'correct', 'semicolon':'correct', 'a semicolon':'correct'},
+      nudge:'Check each declaration in that rule. Does every one finish with the same mark?',
+      nudgeOptions:[option('wrong', 'Yes, they all match'), option('correct', 'No, one is missing it'), option('unsure', 'I’m not sure')],
+      scaffold:'CSS reads property: value; as one declaration. Without the semicolon, the browser reads the next line as part of the same declaration and skips what it cannot understand.',
+      explicit:`The declaration on line ${f.line} has no semicolon at its end. Add one after the value.`,
+      action:'Finish one declaration in Web Lab and compare the preview.',
+      check:retry => retry
+        ? {prompt:'Which rule sets both styles correctly?', answers:['h2{color:blue;text-align:right}'], compact:true, options:[option('correct', 'h2 { color: blue; text-align: right; }'), option('wrong', 'h2 { color: blue text-align: right; }'), option('other', 'h2 { color: blue, text-align: right }')]}
+        : {prompt:'Which rule sets both styles correctly?', answers:['p{color:green;text-align:center}'], compact:true, options:[option('correct', 'p { color: green; text-align: center; }'), option('wrong', 'p { color: green text-align: center; }'), option('other', 'p { color: green, text-align: center }')]}
+    }),
+    unknown_property: f => ({
+      label:'Exact CSS property names',
+      q:`Look at the property name on line ${f.line} of your CSS. Is it spelled exactly as it appears in the lesson’s CSS Properties notes?`,
+      options:[option('correct', 'No, mine is different'), option('wrong', 'Yes, it matches'), option('unsure', 'I’m not sure')], accepted:{'no':'correct'},
+      nudge:'CSS property names have one exact spelling. Compare yours with the notes one letter at a time. What is different?',
+      scaffold:`The browser skips any declaration whose property name it does not recognise, and it shows no error.${/colour|centre/.test(f.prop) ? ' CSS property names use American spelling.' : ''}`,
+      explicit:`“${f.prop}” on line ${f.line} is not a CSS property name. ${/colour/.test(f.prop) ? 'CSS spells this word color.' : 'Find the matching property in the notes and copy its spelling exactly.'}`,
+      action:'Correct one property name in Web Lab and compare the preview.',
+      check:retry => retry
+        ? {prompt:'Which declaration will the browser accept?', answers:['text-align:center'], compact:true, options:[option('correct', 'text-align: center;'), option('wrong', 'text-allign: center;'), option('other', 'align-text: center;')]}
+        : {prompt:'A rule says p { font-colour: red; } and nothing changes. What is the most likely cause?', answers:[], options:[option('correct', 'font-colour is not a CSS property name'), option('wrong', 'Red is not a CSS colour'), option('other', 'Paragraphs cannot change colour')]}
+    }),
+    class_dot: f => ({
+      label:'Selecting a class',
+      q:`Your CSS selector on line ${f.line} is ${f.name}. What kind of thing is ${f.name} in your HTML?`,
+      options:[option('correct', 'A class name'), option('wrong', 'A tag name'), option('unsure', 'I’m not sure')], accepted:{'class':'correct', 'a class':'correct', 'class name':'correct', 'a class name':'correct'},
+      nudge:'CSS reads a plain word as a tag name. What does a selector need so that CSS looks for a class instead?',
+      nudgeOptions:[option('wrong', 'Quotation marks around the name'), option('correct', 'A dot before the name'), option('other', 'A # before the name'), option('unsure', 'I’m not sure')],
+      scaffold:'A class selector starts with a special character, so CSS can tell it apart from a tag name.',
+      explicit:`Class selectors begin with a dot. Write the selector on line ${f.line} as .${f.name}`,
+      action:'Change one selector in Web Lab and compare the preview.',
+      check:retry => { const name = ['spotlight', 'banner', 'notice'].filter(item => item !== f.name.toLowerCase())[retry ? 1 : 0];
+        return {prompt:`An element has class="${name}". Which selector targets that class?`, answers:[`.${name}`], options:[option('correct', `.${name}`), option('wrong', name), option('other', `#${name}`)]}; }
+    }),
+    selector_mismatch: f => ({
+      label:'Matching a selector to an element',
+      q:`Your CSS rule on line ${f.line} selects ${f.tag}. Can you find a ${f.tag} element in the HTML you pasted?`,
+      options:[option('correct', 'No, my HTML uses a different tag'), option('different', 'Yes, it is in my full page'), option('unsure', 'I’m not sure')], accepted:{'no':'correct'},
+      nudge:'A rule only styles the elements that its selector names. Which tag surrounds the text you want to change?',
+      scaffold:'The selector and the element’s tag name need to match exactly. A rule for one heading level does not style another level.',
+      explicit:`Your pasted HTML uses ${f.present.join(', ')} and your rule selects ${f.tag}. Change one of them so that the names match.`,
+      action:'Make one selector and one tag name match in Web Lab, then compare the preview.',
+      check:retry => retry
+        ? {prompt:'A page has <p>Welcome</p>. Which rule changes its colour?', answers:['p{color:red}'], compact:true, options:[option('correct', 'p { color: red; }'), option('wrong', 'h1 { color: red; }'), option('other', 'paragraph { color: red; }')]}
+        : {prompt:'A page has <h3>Scores</h3>. Which rule changes its colour?', answers:['h3{color:red}'], compact:true, options:[option('correct', 'h3 { color: red; }'), option('wrong', 'h2 { color: red; }'), option('other', 'heading { color: red; }')]}
+    })
+  };
+
+  // fallback() returns the session the keyword router would have chosen, or null.
+  function create(finding, fallback = null) {
+    const cfg = TOPICS[finding.topic](finding);
+    let phase = 'coaching', stage = 'diagnose', level = 1, prompt = '', choices = [], feedback = '', reportedFixed = false;
+    let verification = 'Not attempted', outcome = 'Checking one part of the code', errors = 0, retry = false, turns = 0, clarified = false, probed = false, delegate = null;
+    const evidence = [`Code check pointed to line ${finding.line}: ${cfg.label}.`], attempts = [];
+    function view() {
+      if (delegate) { const next = delegate.view(); return {...next, evidence:[...evidence, ...next.evidence]}; }
+      return {phase, stage, level, prompt, choices:choices.map(item => ({...item})), feedback, reportedFixed, verification, outcome, evidence:[...evidence], attempts:[...attempts], pathLabel:`${cfg.label} (found by code check) — working hypothesis`, checkLabel:'Quick check: a new example', answerPlaceholder:'Type an answer or choose above…'};
+    }
+    function say(next, text, options = [], nextLevel = level) { stage = next; prompt = text; choices = options; level = Math.max(level, nextLevel); clarified = false; return view(); }
+    function handoff(reason = 'This still needs another pair of eyes.') {
+      if (delegate) return delegate.handoff(reason);
+      if (phase === 'done') return view();
+      phase = 'done'; outcome = 'Teacher review recommended';
+      if (verification !== 'Not attempted') verification = 'Not confirmed — teacher review recommended';
+      return say('handoff', `${reason} Show your partner or teacher the smallest relevant snippet, your expected result, and the session notes.`, [], 5);
+    }
+    // A rejected hypothesis is recorded, then the keyword router's pathway takes over.
+    function reject() {
+      evidence.push(`Student said this code-check hypothesis did not fit (${cfg.label}).`);
+      const next = fallback && fallback();
+      if (next) { delegate = next; return view(); }
+      return handoff('I couldn’t match this to a problem I know how to coach.');
+    }
+    function testChange(prefix = '', action = cfg.action) {
+      return say('test', prefix + action, [option('fixed', 'I tried it and made progress'), option('stuck', 'Still stuck'), option('different', 'That isn’t my issue')]);
+    }
+    function stuck() {
+      if (delegate) return delegate.stuck();
+      if (phase !== 'coaching') return view();
+      if (++turns > 16 || level >= 4) return handoff();
+      level++;
+      if (level === 2 && probed) level = 3;
+      if (level === 2) { probed = true; return say('diagnose', cfg.nudge, cfg.nudgeOptions || []); }
+      if (level === 3) return testChange(cfg.scaffold + ' ', genericAction);
+      return testChange(cfg.explicit + ' ');
+    }
+    function askCheck() { const spec = cfg.check(retry); return say('check-lesson', spec.prompt, spec.options); }
+    function fixed() {
+      if (delegate) return delegate.fixed();
+      if (phase !== 'coaching') return view();
+      reportedFixed = true; phase = 'verification'; verification = 'In progress'; outcome = 'Student reports progress — checking one idea'; feedback = '';
+      attempts.push('Student reported progress in Web Lab; the Coach did not run the code or assess the full task.');
+      return askCheck();
+    }
+    function answer(text, selected = null) {
+      if (delegate) return delegate.answer(text, selected);
+      if (phase === 'done') return view();
+      if (++turns > 20) return handoff();
+      const value = norm(text);
+      if (phase === 'verification') {
+        const spec = cfg.check(retry), normal = spec.compact ? value.replace(/\s/g, '').replace(/;?\}$/, '}').replace(/;$/, '') : value.replace(/>\s+</g, '><');
+        if (selected === 'correct' || (!selected && spec.answers.includes(normal))) {
+          evidence.push(`Matched a fresh ${cfg.label} check (${selected ? 'selected' : 'typed'} answer).`);
+          verification = errors ? 'Matched after one scaffolded retry' : 'Matched a fresh example'; outcome = 'Student reported progress — concept check matched'; phase = 'done'; feedback = '';
+          return say('resolved', 'That matches the idea in the new example. Return to your Web Lab project and keep testing small changes.');
+        }
+        if (!selected && !clarified) { clarified = true; feedback = 'I couldn’t confirm that wording. Choose the closest answer below. This does not count as an incorrect attempt.'; return view(); }
+        if (++errors >= 2) return handoff('The fresh-example check is still unclear after another try.');
+        retry = true; level = Math.max(level, 3); feedback = cfg.scaffold + ' Try this new example.'; return askCheck();
+      }
+      if (selected === 'different') return reject();
+      if (stage === 'diagnose') {
+        const accepted = selected || cfg.accepted[value];
+        if (accepted === 'correct') {
+          evidence.push(`Student identified the idea: ${cfg.label} (${selected ? 'selected' : 'typed'} answer).`);
+          if (!probed) { probed = true; return say('diagnose', 'Good thinking. ' + cfg.nudge, cfg.nudgeOptions || []); }
+          return testChange();
+        }
+        // An open follow-up has no buttons, so a typed reply moves the student on to test the idea.
+        if (probed && !selected && !choices.length && !unsure(text)) {
+          evidence.push('Student described what they noticed in their own words (typed; the Coach did not evaluate it).');
+          return testChange();
+        }
+        if (!selected && !unsure(text) && !clarified) { clarified = true; prompt = choices.length ? 'I’m not certain what you mean. Which option is closest to your thinking?' : 'I’m not certain what you mean. Describe what you see on that line, or choose “Still stuck” for a hint.'; return view(); }
+        return stuck();
+      }
+      if (stage === 'test') {
+        if (selected === 'fixed' || ['yes', 'it worked', 'i fixed it', 'done'].includes(value)) return fixed();
+        if (selected === 'stuck' || value === 'no' || unsure(text)) return stuck();
+        if (!clarified) { clarified = true; prompt = 'Try the change in Web Lab, then choose whether you made progress or are still stuck.'; return view(); }
+        return stuck();
+      }
+      return view();
+    }
+    say('diagnose', cfg.q, cfg.options.some(item => item.id === 'different') ? cfg.options : [...cfg.options, option('different', 'That isn’t my issue')]);
+    return {view, answer, stuck, fixed, handoff};
+  }
+  window.TFC_LINT_COACH = {inspect, create};
+})();
+</script><script>
+/* Router (November 2026). One pure function decides which coach runs, so tests can call it without a page.
+   Order: code check first, then the keyword pathways that were already in place. */
+(() => {
+  'use strict';
   function classify(goalText, actualText, html, css) {
     const combined = `${goalText} ${actualText}`.toLowerCase(), h = html.toLowerCase(), c = css.toLowerCase();
     if (/class\s*=/.test(h) && /all.*(paragraph|text)|only.*(one|warning|class)/.test(combined) && /(^|\n|\})\s*[a-z][a-z0-9-]*\s*\{/.test(c)) return 'class_selector_confusion';
@@ -1142,6 +1453,44 @@ window.TFC_PATHWAYS = {
     if (/html.*css|css.*html|which language|structure.*style|style.*structure/.test(combined)) return 'html_css_role_confusion';
     return 'unclassified';
   }
+  function route(input) {
+    const {goal, actual, html, css, lesson} = input;
+    const lessonContext = window.TFC_LESSON_COACH.inspect(input);
+    const sizeContext = window.TFC_SIZE_COACH.inspect(goal, actual, html, css, input.supports);
+    function keyword() {
+      let pathwayKey = classify(goal, actual, html, css), session = null, source = 'scripted';
+      const earlyLesson = ['2', '3', '5'].includes(lesson);
+      const structural = lessonContext && !['css_text', 'roles', 'css_syntax'].includes(lessonContext.topic);
+      if (structural || earlyLesson) { session = window.TFC_LESSON_COACH.create(lessonContext || {...input, topic:'html_triage'}); source = 'lesson'; }
+      else if (lessonContext?.topic === 'css_syntax') { session = window.TFC_LESSON_COACH.create(lessonContext); source = 'lesson'; }
+      else if (sizeContext) { session = window.TFC_SIZE_COACH.create(sizeContext); source = 'size'; }
+      else if (pathwayKey === 'class_selector_confusion') {
+        const context = window.TFC_CLASS_COACH.getContext(goal, html, css);
+        if (context) { session = window.TFC_CLASS_COACH.create(context); source = 'class'; } else pathwayKey = 'unclassified';
+      } else if (lessonContext) { session = window.TFC_LESSON_COACH.create(lessonContext); source = 'lesson'; }
+      return {session, pathwayKey, source};
+    }
+    const finding = window.TFC_LINT_COACH.inspect(input, {lessonTopic:lessonContext?.topic || '', hasSize:Boolean(sizeContext)});
+    if (finding) return {session:window.TFC_LINT_COACH.create(finding, () => keyword().session), pathwayKey:'unclassified', source:'code-check', topic:finding.topic};
+    return keyword();
+  }
+  window.TFC_ROUTER = {classify, route};
+})();
+</script><script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const pathways = window.TFC_PATHWAYS;
+  let pathwayKey = 'unclassified', level = 0, phase = 'idle', coachingSession = null, legacyChecks = 0, routeSource = '', startedAt = '';
+  // FIX 8: names for each support level, shown in the session notes.
+  const levelNames = ['Not started', 'Diagnose', 'Nudge', 'Scaffold', 'Explicit hint', 'Teacher'];
+  function addMessage(role, text) {
+    const box = document.createElement('div');
+    box.className = `message ${role}`;
+    box.textContent = text;
+    $('conversation').appendChild(box);
+  }
+  function progress(process, stage = '') { document.dispatchEvent(new CustomEvent('tfc:progress', {detail:{process, stage}})); }
   function updateLevel() {
     $('levelPill').textContent = `Level ${level}`;
     // FIX 8: "3 · Scaffold" instead of a bare "3".
@@ -1268,24 +1617,10 @@ window.TFC_PATHWAYS = {
     const goal = $('goal').value.trim(), actual = $('actual').value.trim();
     if (!goal || !actual) return;
     clearSessionUI(); $('conversation').replaceChildren();
-    pathwayKey = classify(goal, actual, $('htmlCode').value, $('cssCode').value); coachingSession = null;
     const input = {goal, actual, html:$('htmlCode').value, css:$('cssCode').value, lesson:$('lessonSelect').value, supports:(property,value) => CSS.supports(property,value)};
-    const lessonContext = window.TFC_LESSON_COACH.inspect(input);
-    const sizeContext = window.TFC_SIZE_COACH.inspect(goal,actual,input.html,input.css,input.supports);
-    const earlyLesson = ['2','3','5'].includes(input.lesson);
-    const structural = lessonContext && !['css_text','roles','css_syntax'].includes(lessonContext.topic);
-    if (structural || earlyLesson) {
-      coachingSession = window.TFC_LESSON_COACH.create(lessonContext || {...input,topic:'html_triage'});
-    } else if (lessonContext?.topic === 'css_syntax') {
-      coachingSession = window.TFC_LESSON_COACH.create(lessonContext);
-    } else if (sizeContext) {
-      coachingSession = window.TFC_SIZE_COACH.create(sizeContext);
-    } else if (pathwayKey === 'class_selector_confusion') {
-      const context = window.TFC_CLASS_COACH.getContext(goal,input.html,input.css);
-      if (context) coachingSession = window.TFC_CLASS_COACH.create(context); else pathwayKey = 'unclassified';
-    } else if (lessonContext) {
-      coachingSession = window.TFC_LESSON_COACH.create(lessonContext);
-    }
+    // The router runs the code check first, then the keyword pathways.
+    const routed = window.TFC_ROUTER.route(input);
+    pathwayKey = routed.pathwayKey; coachingSession = routed.session; routeSource = routed.source; startedAt = new Date().toISOString();
     $('sumLesson').textContent = input.lesson === 'auto' ? 'Not specified / own project' : 'Code.org Lesson ' + input.lesson;
     level = 1; phase = 'coaching'; updateLevel();
     $('sumBarrier').textContent = `${goal} — ${actual}`;
@@ -1343,8 +1678,40 @@ window.TFC_PATHWAYS = {
     $('reflectionCard').classList.add('hidden');
     finishFocus();
   });
+  // Notes export. Nothing is sent anywhere: copy uses the clipboard, print uses the browser, download saves a local file.
+  const noteFields = [['Lesson','sumLesson'],['Challenge','sumBarrier'],['Possible pathway','sumHypothesis'],['Highest support level','sumSupport'],['Understanding check','sumVerification'],['Evidence','sumEvidence'],['Attempts & reported result','sumAttempts'],['Reflection','sumReflection'],['Outcome','sumStatus']];
+  const notesText = () => ['Tech Foundations Coach: session notes', ...noteFields.map(([label, id]) => `${label}: ${$(id).textContent.trim()}`)].join('\n');
+  function notesData() {
+    const read = id => $(id).textContent.trim();
+    // No name, no code and no conversation: only what the notes panel already shows, plus how the pathway was chosen.
+    return {tool:'Tech Foundations Coach', schema:1, startedAt, exportedAt:new Date().toISOString(), lesson:$('lessonSelect').value,
+      challenge:read('sumBarrier'), pathway:read('sumHypothesis'), pathwaySource:routeSource || 'none', hypothesisRejected:/hypothesis did not fit/.test(read('sumEvidence')),
+      highestSupportLevel:level, highestSupportName:levelNames[level] || '', understandingCheck:read('sumVerification'), evidence:read('sumEvidence'),
+      attempts:read('sumAttempts'), reflection:read('sumReflection'), outcome:read('sumStatus')};
+  }
+  const notesReady = () => { if (phase !== 'idle') return true; $('notesStatus').textContent = 'There are no notes yet. Start a coaching session first.'; return false; };
+  $('copyNotesBtn').addEventListener('click', async () => {
+    if (!notesReady()) return;
+    const text = notesText(); let copied = false;
+    try { await navigator.clipboard.writeText(text); copied = true; } catch (error) {
+      // Embedded pages can be refused clipboard access, so fall back to a temporary text box.
+      const box = document.createElement('textarea'); box.value = text; box.setAttribute('readonly', ''); box.style.position = 'fixed'; box.style.opacity = '0';
+      document.body.appendChild(box); box.select();
+      try { copied = document.execCommand('copy'); } catch (inner) { copied = false; }
+      box.remove();
+    }
+    $('notesStatus').textContent = copied ? 'Notes copied. Paste them into a document or a message to your teacher.' : 'Copying is blocked here. Use Print notes or Download instead.';
+  });
+  $('printNotesBtn').addEventListener('click', () => { if (!notesReady()) return; $('summaryPanel').open = true; window.print(); });
+  $('downloadNotesBtn').addEventListener('click', () => {
+    if (!notesReady()) return;
+    const url = URL.createObjectURL(new Blob([JSON.stringify(notesData(), null, 2)], {type:'application/json'}));
+    const link = document.createElement('a'); link.href = url; link.download = `coach-notes-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.json`;
+    document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    $('notesStatus').textContent = 'Notes file saved to your downloads. Send it to your teacher if they ask for it.';
+  });
   $('resetBtn').addEventListener('click', () => {
-    coachingSession = null; phase = 'idle'; level = 0; pathwayKey = 'unclassified'; clearSessionUI();
+    coachingSession = null; phase = 'idle'; level = 0; pathwayKey = 'unclassified'; routeSource = ''; startedAt = ''; $('notesStatus').textContent = ''; clearSessionUI();
     $('goal').value = 'Show two separate paragraphs'; $('actual').value = 'I pressed Enter, but the text stays on one line';
     $('htmlCode').value = 'Welcome to our school garden.\nWe grow flowers and vegetables.'; $('cssCode').value = '';
     $('conversation').replaceChildren(); $('responseArea').classList.add('hidden'); $('status').textContent = 'Ready when you are';
