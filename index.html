@@ -34,6 +34,10 @@
   FIX 14 Lesson 8 (Using Images) added to the lesson menu, with image checks: a missing or misspelled src,
          content wrapped in <img></img>, a file name with no ending, a file name that may not match the
          file list, and missing alt text. A missing quotation mark is now caught in any tag.
+  FIX 15 Lessons 9, 10, 12, 13 and 14 added to the lesson menu. New checks from the teacher plans: a size with no
+         unit, a value the property does not accept, a border with no border-style, color used for a background,
+         image size, Flexbox properties without display: flex, Flexbox child properties without a flex
+         container, wrapping, justify-content and align-items mixed up, and planning for the two style projects.
   FIX 9  Clipboard: no code in this file writes to the clipboard; the behaviour comes from the
          Google Sites embed wrapper, so no change is needed here.
 -->
@@ -340,7 +344,7 @@ body[data-screen=challenge] .screen-actions{margin-top:20px}
 <form id="intakeForm" novalidate>
 <section id="challengeScreen" class="screen panel" aria-labelledby="challengeTitle">
 <h1 id="challengeTitle" tabindex="-1">What’s going on?</h1><p class="screen-intro">Tell me what you wanted to happen and what went wrong.</p>
-<div class="lesson-field"><label for="lessonSelect">Which lesson?</label><select id="lessonSelect"><option value="auto">Not sure / my own project</option><option value="2" selected>2 · Intro to HTML</option><option value="3">3 · Headings and Lists</option><option value="5">5 · HTML Web Page project</option><option value="6">6 · Styling Text with CSS</option><option value="8">8 · Using Images</option><option value="11">11 · CSS Classes</option></select></div>
+<div class="lesson-field"><label for="lessonSelect">Which lesson?</label><select id="lessonSelect"><option value="auto">Not sure / my own project</option><option value="2" selected>2 · Intro to HTML</option><option value="3">3 · Headings and Lists</option><option value="5">5 · HTML Web Page project</option><option value="6">6 · Styling Text with CSS</option><option value="8">8 · Using Images</option><option value="9">9 · Styling Elements with CSS</option><option value="10">10 · Adding Style project</option><option value="11">11 · CSS Classes</option><option value="12">12 · Organizing Content with Flexbox</option><option value="13">13 · Flexbox Children</option><option value="14">14 · Chapter 1 Project</option></select></div>
 <div id="practiceBanner" class="practice-banner"><span><strong>Practice: my paragraphs run together</strong><small>We’ve filled one in for you.</small></span><button type="button" id="clearBtn" class="text-button">Use my own code <span aria-hidden="true">→</span></button></div>
 <div class="field"><label for="goal">What are you trying to do?</label><textarea id="goal" rows="2" required placeholder="For example: Make one paragraph red">Show two separate paragraphs</textarea></div>
 <div class="field"><label for="actual">What happens instead?</label><textarea id="actual" rows="2" required placeholder="For example: Every paragraph turns red">I pressed Enter, but the text stays on one line</textarea></div>
@@ -1239,7 +1243,7 @@ window.TFC_PATHWAYS = {
         let at = -1;
         for (let i = stack.length - 1; i >= 0; i--) if (stack[i].name === token.name) { at = i; break; }
         if (at < 0) continue; // A stray closing tag usually means the snippet started part-way through.
-        const left = stack.slice(at + 1).reverse().find(item => isHeading(item.name) || INLINE.has(item.name) || isList(item.name));
+        const left = stack.slice(at + 1).reverse().find(item => isHeading(item.name) || INLINE.has(item.name) || isList(item.name) || item.name === 'div');
         if (left) return unclosed(left);
         stack.length = at;
       }
@@ -1248,9 +1252,8 @@ window.TFC_PATHWAYS = {
     return open ? unclosed(open) : null;
   }
 
-  function lintCss(source, htmlSource, supports, skipProperties) {
+  function lintCss(source, htmlSource, supports, skipProperties, mode = 'structural', words = '', lesson = 'auto', goal = '') {
     const css = source.replace(/\/\*[\s\S]*?\*\//g, blank);
-    if (!css.trim()) return null;
     const html = htmlSource.replace(/<!--[\s\S]*?-->/g, blank);
     const elements = [...html.matchAll(/<([a-z][a-z0-9-]*)\b([^<>]*)>/gi)].map(match => ({name:match[1].toLowerCase(), attrs:match[2]}));
     const present = [...new Set(elements.map(item => item.name))].filter(name => !['html', 'head', 'body', 'title', 'meta', 'link', 'style'].includes(name));
@@ -1259,9 +1262,12 @@ window.TFC_PATHWAYS = {
       const lead = match[1].length - match[1].trimStart().length;
       return {selector:match[1].trim(), body:match[2], line:lineOf(css, match.index + lead), bodyStart:match.index + match[1].length + 1};
     });
-    const findings = {};
+    const findings = {}, all = new Set();
+    const SIZED = /^(?:width|height|margin(?:-(?:top|right|bottom|left))?|padding(?:-(?:top|right|bottom|left))?|border-width|border-radius)$/;
+    const flexRule = rules.some(rule => /display\s*:\s*(?:inline-)?flex\b/i.test(rule.body));
     const keep = (topic, detail) => { if (!findings[topic]) findings[topic] = {topic, ...detail}; };
     for (const rule of rules) {
+      const declared = {};
       const bracket = /^<\/?([a-z][a-z0-9]*)\s*\/?>$/i.exec(rule.selector);
       if (bracket) keep('selector_brackets', {tag:bracket[1].toLowerCase(), line:rule.line});
       let offset = 0;
@@ -1269,10 +1275,26 @@ window.TFC_PATHWAYS = {
         const start = rule.bodyStart + offset + (chunk.length - chunk.trimStart().length);
         offset += chunk.length + 1;
         if (!chunk.trim()) continue;
-        if (/:[^:]*\n\s*[a-z-]+\s*:/i.test(chunk)) keep('missing_semicolon', {line:lineOf(css, start)});
+        const joined = /:[^:]*\n\s*[a-z-]+\s*:/i.test(chunk);
+        if (joined) keep('missing_semicolon', {line:lineOf(css, start)});
         const name = /^\s*([a-z_][\w -]*?)\s*:/i.exec(chunk)?.[1].toLowerCase();
-        if (name && !skipProperties && (/\s/.test(name) || !supports(name, 'inherit'))) keep('unknown_property', {prop:name, line:lineOf(css, start)});
+        const known = name && !/\s/.test(name) && supports(name, 'inherit');
+        if (name && !skipProperties && !known) keep('unknown_property', {prop:name, line:lineOf(css, start)});
+        if (!known || joined) continue;
+        const value = chunk.slice(chunk.indexOf(':') + 1).trim().replace(/\s*!important\s*$/i, '');
+        declared[name] = value; all.add(name);
+        // Lesson 9: sizes need a unit, and each property accepts only certain values.
+        if (SIZED.test(name) && /^-?\d*\.?\d+$/.test(value) && Number(value) !== 0) keep('unit_missing', {prop:name, value, line:lineOf(css, start)});
+        else if (value && !['font-family', 'font-size', 'font', 'content'].includes(name) && !/var\(|url\(/i.test(value) && !supports(name, value)) keep('invalid_value', {prop:name, value, line:lineOf(css, start)});
       }
+      // Lesson 9: a border needs a style before its width or colour can show.
+      const borderPart = ['border-width', 'border-color'].find(name => name in declared);
+      if (borderPart && !('border-style' in declared) && !('border' in declared)) keep('border_style', {have:borderPart, line:rule.line});
+      // Lessons 12 and 13: Flexbox properties need display: flex on the container.
+      const containerProp = ['flex-direction', 'flex-wrap', 'justify-content', 'align-items', 'align-content'].find(name => name in declared);
+      if (containerProp && !/flex/.test(declared.display || '')) keep('flex_display', {prop:containerProp, line:rule.line});
+      const childProp = ['order', 'align-self', 'flex-grow', 'flex-shrink'].find(name => name in declared);
+      if (childProp && !flexRule) keep('flex_parent', {prop:childProp, line:rule.line});
       // Lesson 11: a class selector whose name is not on any pasted element.
       const classSelector = /^(?:[a-z][a-z0-9]*)?\.([a-z_][\w-]*)$/i.exec(rule.selector);
       if (classSelector && present.length && !classes.has(classSelector[1])) {
@@ -1286,7 +1308,26 @@ window.TFC_PATHWAYS = {
       if (classes.has(rule.selector) && !present.includes(selector)) keep('class_dot', {name:rule.selector, line:rule.line});
       else if (KNOWN_TAGS.has(selector) && !['html', 'body', 'head'].includes(selector) && !present.includes(selector)) keep('selector_mismatch', {tag:selector, present:present.slice(0, 3), line:rule.line});
     }
-    return ['selector_brackets', 'missing_semicolon', 'unknown_property', 'class_dot', 'class_mismatch', 'class_not_applied', 'selector_mismatch'].map(topic => findings[topic]).find(Boolean) || null;
+    const structural = ['selector_brackets', 'missing_semicolon', 'unknown_property', 'unit_missing', 'invalid_value', 'class_dot', 'class_mismatch', 'class_not_applied', 'border_style', 'flex_display', 'flex_parent', 'selector_mismatch'].map(topic => findings[topic]).find(Boolean);
+    if (mode === 'structural') return structural || null;
+    if (structural) return null;
+    // The remaining checks need the student's own words. Each one is limited to lessons that have taught the idea.
+    const reached = number => lesson === 'auto' || Number(lesson) >= number;
+    const said = pattern => pattern.test(words);
+    if (reached(9) && said(/background|behind/) && [...all].includes('color') && !all.has('background-color') && !all.has('background')) return {topic:'background_color', from:'description', line:rules.find(rule => /(?:^|[;{\s])color\s*:/i.test(rule.body))?.line || 1};
+    if (reached(9) && present.includes('img') && said(/\b(?:image|images|picture|pictures|photo|photos|pic|img)\b/) && said(/siz|big|large|small|huge|tiny|wide|tall|shrink|fit|cover/) && !all.has('width') && !all.has('height')) return {topic:'img_size', from:'description', line:1};
+    if (reached(12) && flexRule) {
+      if (!all.has('flex-wrap') && said(/squish|squash|squeez|shrink|shrunk|one row|single row|same row|one line|too small|wrap|next row|new row|next line/)) return {topic:'flex_wrap', from:'description', line:1};
+      const column = rules.some(rule => /flex-direction\s*:\s*column/i.test(rule.body));
+      // The goal alone says which way the student wants to move things; the result often names the other way.
+      const across = /across|left|right|horizontal|side to side|sideways/.test(goal), upDown = /vertical|up and down|\btop\b|bottom|higher|lower/.test(goal);
+      const mainIsAcross = !column;
+      const have = all.has('justify-content') && !all.has('align-items') ? 'justify-content' : all.has('align-items') && !all.has('justify-content') ? 'align-items' : '';
+      // justify-content works along the direction of flow; align-items works the other way.
+      const moves = have === 'justify-content' ? (mainIsAcross ? 'across' : 'upDown') : have === 'align-items' ? (mainIsAcross ? 'upDown' : 'across') : '';
+      if (have && across !== upDown && moves !== (across ? 'across' : 'upDown')) return {topic:'flex_axis', from:'description', have, other:have === 'justify-content' ? 'align-items' : 'justify-content', direction:column ? 'column' : 'row', moves, line:1};
+    }
+    return null;
   }
 
   // lessonTopic and hasSize come from the existing coaches, so their specific detections keep priority.
@@ -1294,16 +1335,22 @@ window.TFC_PATHWAYS = {
     const html = input.html || '', css = input.css || '';
     const htmlFinding = lintHtml(html, ['tags', 'body'].includes(lessonTopic));
     if (htmlFinding) return htmlFinding;
+    const words = `${input.goal || ''} ${input.actual || ''}`.toLowerCase(), lesson = input.lesson || 'auto';
+    // Order: what the CSS shows, then what the description adds about the CSS, then images, then project planning.
+    if (lessonTopic !== 'css_syntax') {
+      const supports = input.supports || (() => true);
+      const cssFinding = lintCss(css, html, supports, hasSize) || lintCss(css, html, supports, hasSize, 'descriptive', words, lesson, (input.goal || '').toLowerCase());
+      if (cssFinding) return cssFinding;
+    }
     // These two need the student's own words, because the code alone looks complete.
-    const words = `${input.goal || ''} ${input.actual || ''}`.toLowerCase();
     const image = /<img\b([^<>]*)>/i.exec(html.replace(/<!--[\s\S]*?-->/g, blank));
     if (image && /\b(?:image|images|picture|pictures|photo|photos|pic|img)\b/.test(words)) {
       const found = attributes(image[1]), line = lineOf(html, image.index);
-      if (/broken|blank|missing|icon|load|appear|show|display|see|invisible|nothing|work/.test(words)) return {topic:'img_filename', src:found.src, noext:false, line};
-      if (!('alt' in found) && /\balt\b|alternat|descri/.test(words)) return {topic:'img_no_alt', line};
+      if (/broken|blank|missing|icon|load|appear|show|display|see|invisible|nothing|work/.test(words) && !/siz|big|large|small|huge|tiny|wide|tall|shrink|fit|cover|border|corner|round|float|row|column|cent(?:er|re)|middle|move|line up|beside|next to|background/.test(words)) return {topic:'img_filename', from:'description', src:found.src, noext:false, line};
+      if (!('alt' in found) && /\balt\b|alternat|descri/.test(words)) return {topic:'img_no_alt', from:'description', line};
     }
-    if (lessonTopic === 'css_syntax') return null;
-    return lintCss(css, html, input.supports || (() => true), hasSize);
+    if (['10', '14'].includes(lesson) && /start|plan|user|needs|idea|whole|entire|don.?t know what|organi[sz]/.test(words)) return {topic:'style_planning', from:'description', line:1};
+    return null;
   }
 
   const TOPICS = {
@@ -1471,6 +1518,138 @@ window.TFC_PATHWAYS = {
         ? {prompt:'Which alt text best describes a photo of a cat asleep on a couch?', answers:[], options:[option('correct', 'alt="A cat asleep on a couch"'), option('wrong', 'alt="picture"'), option('other', 'alt="cat.png"')]}
         : {prompt:'Which alt text best describes a photo of a dog catching a ball?', answers:[], options:[option('correct', 'alt="A dog catching a red ball"'), option('wrong', 'alt="image"'), option('other', 'alt="dog.jpg"')]}
     }),
+    unit_missing: f => ({
+      label:'Sizes need a unit',
+      q:`Your CSS on line ${f.line} says ${f.prop}: ${f.value}. Does a number by itself tell the browser which unit to use?`,
+      options:[option('correct', 'No, it needs a unit'), option('wrong', 'Yes, the number is enough'), option('unsure', 'I’m not sure')], accepted:{'no':'correct'},
+      nudge:'Sizes in CSS are a number joined to a unit. Which unit have your lessons used for sizes like this one?',
+      scaffold:'A size needs a number and a unit written together with no space between them. Without the unit, the browser skips the declaration.',
+      explicit:`Add a unit to the value on line ${f.line}, such as ${f.value}px.`,
+      action:'Add a unit to one size in Web Lab and compare the preview.',
+      check:retry => retry
+        ? {prompt:'Which declaration sets a height the browser accepts?', answers:['height:150px'], compact:true, options:[option('correct', 'height: 150px;'), option('wrong', 'height: 150;'), option('other', 'height: 150 px;')]}
+        : {prompt:'Which declaration sets a width the browser accepts?', answers:['width:200px'], compact:true, options:[option('correct', 'width: 200px;'), option('wrong', 'width: 200;'), option('other', 'width: 200 px;')]}
+    }),
+    invalid_value: f => ({
+      label:'Values a property accepts',
+      q:`Look at line ${f.line} of your CSS. Is “${f.value}” one of the values that ${f.prop} accepts?`,
+      options:[option('correct', 'No, it is not on the list'), option('wrong', 'Yes, it is a listed value'), option('unsure', 'I’m not sure')], accepted:{'no':'correct'},
+      nudge:`Each property accepts only certain values. Find ${f.prop} in your CSS Properties notes or your cheat sheet. Which values does it list?`,
+      scaffold:'When a value is one that the property does not accept, the browser skips the whole declaration and shows no error.',
+      explicit:`${f.prop} does not accept “${f.value}”. ${({
+        'float':'It accepts left, right, or none.', 'text-align':'It accepts left, right, center, or justify.',
+        'display':'To start a Flexbox layout, the value is flex.', 'flex-direction':'It accepts row, row-reverse, column, or column-reverse.',
+        'flex-wrap':'It accepts nowrap, wrap, or wrap-reverse.', 'justify-content':'It accepts flex-start, flex-end, center, space-between, space-around, or space-evenly.',
+        'align-items':'It accepts flex-start, flex-end, center, stretch, or baseline.', 'align-self':'It accepts flex-start, flex-end, center, stretch, or baseline.',
+        'border-style':'Common values are solid, dashed, dotted, and double.', 'order':'It accepts a whole number, such as -1, 0, or 1.',
+        'color':'Use a colour name from your notes, and check its spelling.', 'background-color':'Use a colour name from your notes, and check its spelling.', 'border-color':'Use a colour name from your notes, and check its spelling.'
+      })[f.prop] || 'Choose a value from the list in your notes.'}`,
+      action:'Change one value in Web Lab and compare the preview.',
+      check:retry => retry
+        ? {prompt:'Which declaration will the browser accept?', answers:['text-align:center'], compact:true, options:[option('correct', 'text-align: center;'), option('wrong', 'text-align: middle;'), option('other', 'text-align: top;')]}
+        : {prompt:'Which declaration will the browser accept?', answers:['float:left'], compact:true, options:[option('correct', 'float: left;'), option('wrong', 'float: center;'), option('other', 'float: top;')]}
+    }),
+    border_style: f => ({
+      label:'The three parts of a border',
+      q:`Your rule-set on line ${f.line} sets ${f.have}. Which three properties work together to draw a border?`,
+      options:[option('correct', 'border-style, border-width and border-color'), option('wrong', 'border-color by itself'), option('other', 'border-radius and border-color'), option('unsure', 'I’m not sure')], accepted:{},
+      nudge:'A border has a thickness, a colour, and a kind of line. Which of those three is missing from your rule-set?',
+      nudgeOptions:[option('wrong', 'The colour'), option('correct', 'The kind of line'), option('other', 'The thickness'), option('unsure', 'I’m not sure')],
+      scaffold:'A border stays invisible until it has a border-style. The width and the colour only describe a line that the style creates.',
+      explicit:'Add a border-style declaration to that rule-set, such as border-style: solid;',
+      action:'Add one declaration in Web Lab and compare the preview.',
+      check:retry => { const tag = retry ? 'p' : 'img';
+        return {prompt:`Which rule-set draws a visible border around ${retry ? 'paragraphs' : 'images'}?`, answers:[], options:[option('correct', `${tag} { border-style: solid; border-width: 3px; }`), option('wrong', `${tag} { border-width: 3px; border-color: blue; }`), option('other', `${tag} { border-radius: 10px; }`)]}; }
+    }),
+    background_color: f => ({
+      label:'Text colour and background colour',
+      q:'Which CSS property changes the colour behind the content?',
+      options:[option('correct', 'background-color'), option('wrong', 'color'), option('unsure', 'I’m not sure')], accepted:{'background-color':'correct', 'background color':'correct'},
+      nudge:'Your notes list two colour properties. One colours the text. What does the other one colour?',
+      nudgeOptions:[option('wrong', 'The border'), option('correct', 'The area behind the text'), option('unsure', 'I’m not sure')],
+      scaffold:'color sets the colour of the text. background-color sets the colour behind it. A rule-set for body applies to the whole page.',
+      explicit:'Use background-color for the area behind the content. To colour the whole page, put it in a rule-set for body.',
+      action:'Change one declaration in Web Lab and compare the preview.',
+      check:retry => retry
+        ? {prompt:'Which declaration makes the text white?', answers:['color:white'], compact:true, options:[option('correct', 'color: white;'), option('wrong', 'background-color: white;'), option('other', 'text: white;')]}
+        : {prompt:'Which rule-set gives the whole page a light blue background?', answers:['body{background-color:lightblue}'], compact:true, options:[option('correct', 'body { background-color: lightblue; }'), option('wrong', 'body { color: lightblue; }'), option('other', 'page { background: lightblue; }')]}
+    }),
+    img_size: f => ({
+      label:'Sizing an image with CSS',
+      q:'Which CSS properties change how big an element is?',
+      options:[option('correct', 'width and height'), option('wrong', 'font-size'), option('other', 'margin'), option('unsure', 'I’m not sure')], accepted:{'width':'correct', 'height':'correct', 'width and height':'correct'},
+      nudge:'Your image needs a rule-set of its own. Which selector styles every image on the page?',
+      nudgeOptions:[option('wrong', '<img>'), option('correct', 'img'), option('other', 'image'), option('unsure', 'I’m not sure')],
+      scaffold:'An img rule-set with a width or a height sets the image’s size. Setting just one of them keeps the picture’s shape.',
+      explicit:'Add a rule-set such as img { width: 200px; } to your CSS, then adjust the number.',
+      action:'Add one size declaration in Web Lab and compare the preview.',
+      check:retry => retry
+        ? {prompt:'Which rule-set makes every image 100 pixels tall?', answers:['img{height:100px}'], compact:true, options:[option('correct', 'img { height: 100px; }'), option('wrong', 'img { size: 100px; }'), option('other', 'img { font-size: 100px; }')]}
+        : {prompt:'Which rule-set makes every image 150 pixels wide?', answers:['img{width:150px}'], compact:true, options:[option('correct', 'img { width: 150px; }'), option('wrong', 'img { size: 150px; }'), option('other', 'img { font-size: 150px; }')]}
+    }),
+    flex_display: f => ({
+      label:'Starting a Flexbox layout',
+      q:`Your rule-set on line ${f.line} uses ${f.prop}. What has to be set on a container before any Flexbox property works?`,
+      options:[option('correct', 'display: flex;'), option('wrong', 'flex-wrap: wrap;'), option('other', 'float: left;'), option('unsure', 'I’m not sure')], accepted:{'display: flex':'correct', 'display:flex':'correct', 'display flex':'correct', 'display: flex;':'correct'},
+      nudge:'Check the steps on your Flexbox Cheat Sheet. Is the declaration that starts Flexbox in your container’s rule-set?',
+      nudgeOptions:[option('wrong', 'Yes, it is there'), option('correct', 'No, it is missing'), option('unsure', 'I’m not sure')],
+      scaffold:'Flexbox properties only take effect inside a container that has been turned into a flex container. Without that step, the browser ignores them.',
+      explicit:`Add display: flex; to the rule-set on line ${f.line}, above ${f.prop}.`,
+      action:'Add one declaration to your container in Web Lab and compare the preview.',
+      check:retry => retry
+        ? {prompt:'Which rule-set lets the items wrap onto new rows?', answers:[], options:[option('correct', '.cards { display: flex; flex-wrap: wrap; }'), option('wrong', '.cards { flex-wrap: wrap; }'), option('other', '.cards { display: wrap; }')]}
+        : {prompt:'Which rule-set centres the items in a row?', answers:[], options:[option('correct', '.gallery { display: flex; justify-content: center; }'), option('wrong', '.gallery { justify-content: center; }'), option('other', '.gallery { display: center; }')]}
+    }),
+    flex_parent: f => ({
+      label:'Flex children need a flex container',
+      q:`Your rule-set on line ${f.line} uses ${f.prop}, a Flexbox child property. What does the container around that item need?`,
+      options:[option('correct', 'display: flex;'), option('wrong', 'order: 1;'), option('other', 'Nothing extra'), option('unsure', 'I’m not sure')], accepted:{'display: flex':'correct', 'display:flex':'correct', 'display flex':'correct', 'display: flex;':'correct'},
+      nudge:'Find the div that holds this item, then look at that container’s rule-set. Has a Flex layout been established there?',
+      nudgeOptions:[option('correct', 'No, not yet'), option('different', 'Yes, in my full code'), option('unsure', 'I’m not sure')],
+      scaffold:'Flex children properties only work on items inside a flex container. The parent needs a Flex layout before order, align-self, flex-grow, or flex-shrink do anything.',
+      explicit:'Give the container’s rule-set display: flex; and keep the child property on the item.',
+      action:'Establish Flex on the container in Web Lab and compare the preview.',
+      check:retry => retry
+        ? {prompt:'An item has flex-grow: 1; but it does not grow. What is the most likely cause?', answers:[], options:[option('correct', 'Its container does not have display: flex;'), option('wrong', 'flex-grow needs a unit such as px'), option('other', 'The item needs float: left;')]}
+        : {prompt:'An item has order: -1; but it does not move. What is the most likely cause?', answers:[], options:[option('correct', 'Its container does not have display: flex;'), option('wrong', 'order only accepts positive numbers'), option('other', 'The item needs float: left;')]}
+    }),
+    flex_wrap: f => ({
+      label:'Wrapping flex items onto new rows',
+      q:'A flex container tries to fit every item into one row. Which property lets items move onto a new row?',
+      options:[option('correct', 'flex-wrap'), option('wrong', 'flex-direction'), option('other', 'justify-content'), option('unsure', 'I’m not sure')], accepted:{'flex-wrap':'correct', 'flex wrap':'correct'},
+      nudge:'Look at your container’s rule-set. Is that property there?',
+      nudgeOptions:[option('correct', 'No, it is missing'), option('different', 'Yes, it is there'), option('unsure', 'I’m not sure')],
+      scaffold:'Without flex-wrap, a flex container shrinks its items to keep them all in a single row.',
+      explicit:'Add flex-wrap: wrap; to the container’s rule-set.',
+      action:'Add one declaration to your container in Web Lab and compare the preview.',
+      check:retry => retry
+        ? {prompt:'What does a flex container do when flex-wrap is not set?', answers:[], options:[option('correct', 'It keeps every item in one row'), option('wrong', 'It hides the extra items'), option('other', 'It stacks the items in a column')]}
+        : {prompt:'Eight images are squeezed into one row. Which declaration lets them wrap?', answers:['flex-wrap:wrap'], compact:true, options:[option('correct', 'flex-wrap: wrap;'), option('wrong', 'flex-direction: row;'), option('other', 'justify-content: wrap;')]}
+    }),
+    flex_axis: f => ({
+      label:'justify-content and align-items',
+      q:`Your container uses ${f.have} and its direction is ${f.direction}. Which way does ${f.have} move the items?`,
+      options:f.moves === 'across' ? [option('correct', 'Across the page'), option('wrong', 'Up and down the page'), option('unsure', 'I’m not sure')] : [option('wrong', 'Across the page'), option('correct', 'Up and down the page'), option('unsure', 'I’m not sure')], accepted:{},
+      nudge:'justify-content spaces items along the direction the container flows. align-items works the other way. Which way do you want your items to move?',
+      scaffold:'In a row, justify-content spaces items across the page and align-items moves them up and down. In a column, the two swap.',
+      explicit:`For the direction you described, use ${f.other} in the container’s rule-set.`,
+      action:'Change one property in your container in Web Lab and compare the preview.',
+      check:retry => retry
+        ? {prompt:'A container has display: flex; and flex-direction: column;. Which declaration centres the items across the page?', answers:['align-items:center'], compact:true, options:[option('correct', 'align-items: center;'), option('wrong', 'justify-content: center;'), option('other', 'text-align: middle;')]}
+        : {prompt:'A container has display: flex; and flex-direction: row;. Which declaration centres the items across the page?', answers:['justify-content:center'], compact:true, options:[option('correct', 'justify-content: center;'), option('wrong', 'align-items: center;'), option('other', 'float: center;')]}
+    }),
+    style_planning: f => ({
+      label:'Planning a style for a user',
+      q:'Before you style the whole page, what is the first thing to check?',
+      options:[option('correct', 'What my user asked for in the project guide'), option('wrong', 'How many properties I can use'), option('other', 'Which colours I like best'), option('unsure', 'I’m not sure')], accepted:{'the user':'correct', 'user needs':'correct', 'the project guide':'correct'},
+      nudge:'Look at your user’s requests in your project guide. Which one request matters most to that user?',
+      scaffold:'Pick one request, choose the element it applies to, and decide which CSS property changes that feature.',
+      explicit:'Write one rule-set for one element that meets one request from your user. Check it against the rubric, then move to the next request.',
+      action:'Style one element for one user request, then compare it with your project guide. I won’t assess the whole project from this snippet.',
+      check:retry => retry
+        ? {prompt:'You have styled one section for your user. How can you check that it is useful?', answers:[], options:[option('correct', 'Compare it with the user’s request and the rubric'), option('wrong', 'Count how many properties it uses'), option('other', 'Ask whether it matches your own taste')]}
+        : {prompt:'Your user wants a calm page with large titles. What is a useful first step?', answers:[], options:[option('correct', 'Write one rule-set for the headings and check it against the request'), option('wrong', 'Add every property you know'), option('other', 'Change the user’s request to match your style')]}
+    }),
     class_dot_in_html: f => ({
       label:'Class names in HTML and CSS',
       q:`Look at the class attribute on line ${f.line} of your HTML. Where does the dot belong?`,
@@ -1539,10 +1718,11 @@ window.TFC_PATHWAYS = {
     const cfg = TOPICS[finding.topic](finding);
     let phase = 'coaching', stage = 'diagnose', level = 1, prompt = '', choices = [], feedback = '', reportedFixed = false;
     let verification = 'Not attempted', outcome = 'Checking one part of the code', errors = 0, retry = false, turns = 0, clarified = false, probed = false, delegate = null;
-    const evidence = [`Code check pointed to line ${finding.line}: ${cfg.label}.`], attempts = [];
+    const fromWords = finding.from === 'description';
+    const evidence = [fromWords ? `Your description and code pointed to: ${cfg.label}.` : `Code check pointed to line ${finding.line}: ${cfg.label}.`], attempts = [];
     function view() {
       if (delegate) { const next = delegate.view(); return {...next, evidence:[...evidence, ...next.evidence]}; }
-      return {phase, stage, level, prompt, choices:choices.map(item => ({...item})), feedback, reportedFixed, verification, outcome, evidence:[...evidence], attempts:[...attempts], pathLabel:`${cfg.label} (found by code check) — working hypothesis`, checkLabel:'Quick check: a new example', answerPlaceholder:'Type an answer or choose above…'};
+      return {phase, stage, level, prompt, choices:choices.map(item => ({...item})), feedback, reportedFixed, verification, outcome, evidence:[...evidence], attempts:[...attempts], pathLabel:`${cfg.label} (${fromWords ? 'from your description' : 'found by code check'}) — working hypothesis`, checkLabel:'Quick check: a new example', answerPlaceholder:'Type an answer or choose above…'};
     }
     function say(next, text, options = [], nextLevel = level) { stage = next; prompt = text; choices = options; level = Math.max(level, nextLevel); clarified = false; return view(); }
     function handoff(reason = 'This still needs another pair of eyes.') {

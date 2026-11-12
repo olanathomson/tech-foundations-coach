@@ -263,7 +263,7 @@
   "actual": "It covers the whole screen",
   "html": "<img src=\"cat.png\">",
   "css": "",
-  "expect": "scripted:unclassified"
+  "expect": "code-check:img_size"
  },
  {
   "lesson": "auto",
@@ -436,5 +436,185 @@
   "actual": "Everything is big",
   "html": "<h2>My Team\n<img src=\"team.jpg\" alt=\"Our team\">\n<p>We play Fridays.</p>",
   "expect": "code-check:unclosed"
+ },
+ {
+  "lesson": "9",
+  "name": "Width with no unit",
+  "cause": "width: 200",
+  "goal": "Make my picture smaller",
+  "actual": "It stays huge",
+  "html": "<img src=\"cat.jpg\" alt=\"Cat\">",
+  "css": "img {\n  width: 200;\n}",
+  "expect": "code-check:unit_missing"
+ },
+ {
+  "lesson": "9",
+  "name": "Float with a value it does not accept",
+  "cause": "float: center",
+  "goal": "Put my image in the middle",
+  "actual": "It does not move",
+  "html": "<img src=\"cat.jpg\" alt=\"Cat\">",
+  "css": "img {\n  float: center;\n}",
+  "expect": "code-check:invalid_value"
+ },
+ {
+  "lesson": "9",
+  "name": "Misspelled colour value",
+  "cause": "background-color: bleu",
+  "goal": "Make the page blue",
+  "actual": "Nothing changes",
+  "html": "<body><p>Hi</p></body>",
+  "css": "body {\n  background-color: bleu;\n}",
+  "expect": "code-check:invalid_value"
+ },
+ {
+  "lesson": "9",
+  "name": "Border with no style",
+  "cause": "no border-style",
+  "goal": "Put a border around my image",
+  "actual": "No border shows",
+  "html": "<img src=\"cat.jpg\" alt=\"Cat\">",
+  "css": "img {\n  border-width: 5px;\n  border-color: red;\n}",
+  "expect": "code-check:border_style"
+ },
+ {
+  "lesson": "9",
+  "name": "Text colour used for the background",
+  "cause": "color instead of background-color",
+  "goal": "Make the background of the page yellow",
+  "actual": "The words turned yellow instead",
+  "html": "<body><p>Hi</p></body>",
+  "css": "body {\n  color: yellow;\n}",
+  "expect": "code-check:background_color"
+ },
+ {
+  "lesson": "9",
+  "name": "Image too big with no size rule",
+  "cause": "needs width",
+  "goal": "Make my photo smaller",
+  "actual": "The picture covers the whole screen",
+  "html": "<img src=\"cat.jpg\" alt=\"Cat\">",
+  "css": "",
+  "expect": "code-check:img_size"
+ },
+ {
+  "lesson": "9",
+  "name": "Rounded corners with a valid rule",
+  "cause": "nothing wrong in snippet",
+  "goal": "make it look cool",
+  "actual": "it looks plain",
+  "html": "<img src=\"cat.jpg\" alt=\"Cat\">",
+  "css": "img {\n  border-radius: 10px;\n  margin: 5px 10px;\n  float: left;\n}",
+  "expect": "scripted:unclassified"
+ },
+ {
+  "lesson": "10",
+  "name": "Does not know where to start styling",
+  "cause": "planning",
+  "goal": "Start styling my user page",
+  "actual": "I do not know what to do first",
+  "html": "<h1>Pets</h1>",
+  "css": "",
+  "expect": "code-check:style_planning"
+ },
+ {
+  "lesson": "12",
+  "name": "Flex property with no display: flex",
+  "cause": "missing display: flex",
+  "goal": "Put my pictures in the centre",
+  "actual": "They stay on the left",
+  "html": "<div class=\"gallery\">\n<img src=\"a.jpg\" alt=\"A\">\n<img src=\"b.jpg\" alt=\"B\">\n</div>",
+  "css": ".gallery {\n  justify-content: center;\n}",
+  "expect": "code-check:flex_display"
+ },
+ {
+  "lesson": "12",
+  "name": "display written as flexbox",
+  "cause": "display: flexbox",
+  "goal": "Line up my cards in a row",
+  "actual": "They stay stacked",
+  "html": "<div class=\"cards\">\n<p>One</p>\n<p>Two</p>\n</div>",
+  "css": ".cards {\n  display: flexbox;\n}",
+  "expect": "code-check:invalid_value"
+ },
+ {
+  "lesson": "12",
+  "name": "Images squeezed into one row",
+  "cause": "needs flex-wrap",
+  "goal": "Show my eight pictures in rows",
+  "actual": "They are all squished into one row",
+  "html": "<div class=\"gallery\">\n<img src=\"a.jpg\" alt=\"A\">\n<img src=\"b.jpg\" alt=\"B\">\n</div>",
+  "css": ".gallery {\n  display: flex;\n}",
+  "expect": "code-check:flex_wrap"
+ },
+ {
+  "lesson": "12",
+  "name": "justify-content used for up and down",
+  "cause": "needs align-items",
+  "goal": "Move my items to the bottom of the box",
+  "actual": "They only move sideways",
+  "html": "<div class=\"box\">\n<p>One</p>\n<p>Two</p>\n</div>",
+  "css": ".box {\n  display: flex;\n  justify-content: flex-end;\n  height: 300px;\n}",
+  "expect": "code-check:flex_axis"
+ },
+ {
+  "lesson": "12",
+  "name": "Div never closed before body ends",
+  "cause": "missing </div>",
+  "goal": "Group my pictures",
+  "actual": "The layout is broken",
+  "html": "<body>\n<div class=\"gallery\">\n<img src=\"a.jpg\" alt=\"A\">\n</body>",
+  "css": ".gallery {\n  display: flex;\n}",
+  "expect": "code-check:unclosed"
+ },
+ {
+  "lesson": "12",
+  "name": "Working flex container, vague report",
+  "cause": "nothing wrong in snippet",
+  "goal": "make it nicer",
+  "actual": "it is boring",
+  "html": "<div class=\"gallery\">\n<img src=\"a.jpg\" alt=\"A\">\n</div>",
+  "css": ".gallery {\n  display: flex;\n  flex-direction: row-reverse;\n  flex-wrap: wrap;\n  justify-content: center;\n}",
+  "expect": "scripted:unclassified"
+ },
+ {
+  "lesson": "13",
+  "name": "Child property with no flex container",
+  "cause": "parent lacks display: flex",
+  "goal": "Move my star card to the front",
+  "actual": "It stays in the same place",
+  "html": "<div class=\"cards\">\n<p class=\"star\">Star</p>\n<p>Other</p>\n</div>",
+  "css": ".star {\n  order: -1;\n}",
+  "expect": "code-check:flex_parent"
+ },
+ {
+  "lesson": "13",
+  "name": "Order given a word",
+  "cause": "order: first",
+  "goal": "Put this card first",
+  "actual": "It does not move",
+  "html": "<div class=\"cards\">\n<p class=\"star\">Star</p>\n</div>",
+  "css": ".cards {\n  display: flex;\n}\n.star {\n  order: first;\n}",
+  "expect": "code-check:invalid_value"
+ },
+ {
+  "lesson": "13",
+  "name": "Working child properties, vague report",
+  "cause": "nothing wrong in snippet",
+  "goal": "make it better",
+  "actual": "it looks off",
+  "html": "<div class=\"cards\">\n<p class=\"star\">Star</p>\n</div>",
+  "css": ".cards {\n  display: flex;\n}\n.star {\n  order: -1;\n  flex-grow: 2;\n  align-self: center;\n}",
+  "expect": "scripted:unclassified"
+ },
+ {
+  "lesson": "14",
+  "name": "Does not know how to organise the project page",
+  "cause": "planning",
+  "goal": "Organize my user page",
+  "actual": "I do not know where to start",
+  "html": "<h1>Pets</h1>",
+  "css": "h1 {\n  color: blue;\n}",
+  "expect": "code-check:style_planning"
  }
 ]
