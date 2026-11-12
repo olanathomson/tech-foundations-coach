@@ -96,7 +96,7 @@
   "goal": "Show a picture of my dog",
   "actual": "There is a broken picture icon",
   "html": "<img src=\"dog.jpg\">",
-  "expect": "lesson:Narrowing an HTML problem"
+  "expect": "code-check:img_filename"
  },
  {
   "lesson": "5",
@@ -364,5 +364,77 @@
   "html": "<p class=\"note\">Hi</p>",
   "css": ".note {\n  color: blue;\n}\np.note { text-align: center; }",
   "expect": "scripted:unclassified"
+ },
+ {
+  "lesson": "8",
+  "name": "Image tag with no src",
+  "cause": "missing src",
+  "goal": "Show a picture of my cat",
+  "actual": "No picture",
+  "html": "<img alt=\"My cat\">",
+  "expect": "code-check:img_no_src"
+ },
+ {
+  "lesson": "8",
+  "name": "Misspelled src attribute",
+  "cause": "scr=",
+  "goal": "Add my logo",
+  "actual": "It does not show up",
+  "html": "<img scr=\"logo.png\" alt=\"Logo\">",
+  "expect": "code-check:img_no_src"
+ },
+ {
+  "lesson": "8",
+  "name": "File name between img tags",
+  "cause": "<img>file</img>",
+  "goal": "Show my dog picture",
+  "actual": "It just shows the words dog.jpg",
+  "html": "<img>dog.jpg</img>",
+  "expect": "code-check:img_content"
+ },
+ {
+  "lesson": "8",
+  "name": "File name with no ending",
+  "cause": "src=\"dog\"",
+  "goal": "Show my dog",
+  "actual": "Broken picture",
+  "html": "<img src=\"dog\" alt=\"My dog\">",
+  "expect": "code-check:img_filename"
+ },
+ {
+  "lesson": "8",
+  "name": "Missing closing quotation mark",
+  "cause": "src=\"cat.jpg alt=",
+  "goal": "Show my cat",
+  "actual": "The image is broken",
+  "html": "<img src=\"cat.jpg alt=\"My cat\">",
+  "expect": "code-check:attr_quote"
+ },
+ {
+  "lesson": "8",
+  "name": "Correct-looking image that does not load",
+  "cause": "file name does not match the file list",
+  "goal": "Show the team photo",
+  "actual": "The image does not show",
+  "html": "<img src=\"team.jpg\" alt=\"Our team\">",
+  "expect": "code-check:img_filename"
+ },
+ {
+  "lesson": "8",
+  "name": "Asked for alt text",
+  "cause": "no alt",
+  "goal": "Add a description to my picture",
+  "actual": "It says I need alt text",
+  "html": "<img src=\"team.jpg\">",
+  "expect": "code-check:img_no_alt"
+ },
+ {
+  "lesson": "8",
+  "name": "Image present but the problem is a heading",
+  "cause": "unclosed h2",
+  "goal": "Only my title should be big",
+  "actual": "Everything is big",
+  "html": "<h2>My Team\n<img src=\"team.jpg\" alt=\"Our team\">\n<p>We play Fridays.</p>",
+  "expect": "code-check:unclosed"
  }
 ]

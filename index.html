@@ -31,6 +31,9 @@
   FIX 13 Lesson 11 (CSS Classes) added to the lesson menu, with four class checks: a dot typed into the HTML
          class name, a misspelled class attribute, class names that do not match, and a class rule that no
          pasted element uses. These join the existing checks for a missing dot and an element selector.
+  FIX 14 Lesson 8 (Using Images) added to the lesson menu, with image checks: a missing or misspelled src,
+         content wrapped in <img></img>, a file name with no ending, a file name that may not match the
+         file list, and missing alt text. A missing quotation mark is now caught in any tag.
   FIX 9  Clipboard: no code in this file writes to the clipboard; the behaviour comes from the
          Google Sites embed wrapper, so no change is needed here.
 -->
@@ -337,7 +340,7 @@ body[data-screen=challenge] .screen-actions{margin-top:20px}
 <form id="intakeForm" novalidate>
 <section id="challengeScreen" class="screen panel" aria-labelledby="challengeTitle">
 <h1 id="challengeTitle" tabindex="-1">What’s going on?</h1><p class="screen-intro">Tell me what you wanted to happen and what went wrong.</p>
-<div class="lesson-field"><label for="lessonSelect">Which lesson?</label><select id="lessonSelect"><option value="auto">Not sure / my own project</option><option value="2" selected>2 · Intro to HTML</option><option value="3">3 · Headings and Lists</option><option value="5">5 · HTML Web Page project</option><option value="6">6 · Styling Text with CSS</option><option value="11">11 · CSS Classes</option></select></div>
+<div class="lesson-field"><label for="lessonSelect">Which lesson?</label><select id="lessonSelect"><option value="auto">Not sure / my own project</option><option value="2" selected>2 · Intro to HTML</option><option value="3">3 · Headings and Lists</option><option value="5">5 · HTML Web Page project</option><option value="6">6 · Styling Text with CSS</option><option value="8">8 · Using Images</option><option value="11">11 · CSS Classes</option></select></div>
 <div id="practiceBanner" class="practice-banner"><span><strong>Practice: my paragraphs run together</strong><small>We’ve filled one in for you.</small></span><button type="button" id="clearBtn" class="text-button">Use my own code <span aria-hidden="true">→</span></button></div>
 <div class="field"><label for="goal">What are you trying to do?</label><textarea id="goal" rows="2" required placeholder="For example: Make one paragraph red">Show two separate paragraphs</textarea></div>
 <div class="field"><label for="actual">What happens instead?</label><textarea id="actual" rows="2" required placeholder="For example: Every paragraph turns red">I pressed Enter, but the text stays on one line</textarea></div>
@@ -1181,6 +1184,11 @@ window.TFC_PATHWAYS = {
     return row[b.length];
   }
   const classNames = attrs => (/(?:^|\s)class\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(attrs) || []).slice(1).filter(Boolean).join(' ').split(/\s+/).filter(Boolean);
+  function attributes(text) {
+    const found = {};
+    for (const match of text.matchAll(/([^\s"'<>\/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g)) found[match[1].toLowerCase()] = match[2] ?? match[3] ?? match[4] ?? '';
+    return found;
+  }
   const tagHint = name => /^h[il]$/.test(name) ? 'h1' : ['paragraph', 'para'].includes(name) ? 'p' : name === 'bold' ? 'strong' : name === 'list' ? 'ul or ol' : '';
 
   function lintHtml(source, deferUnclosed) {
@@ -1190,6 +1198,9 @@ window.TFC_PATHWAYS = {
     const tokens = [...html.matchAll(/<(\/?)([a-z][a-z0-9-]*)\b[^<>]*>/gi)].map(match => ({close:Boolean(match[1]), name:match[2].toLowerCase(), index:match.index}));
     const unknown = tokens.find(token => !KNOWN_TAGS.has(token.name));
     if (unknown) return {topic:'unknown_tag', name:unknown.name, hint:tagHint(unknown.name), line:lineOf(html, unknown.index)};
+    // A missing quotation mark swallows the rest of the tag, so check pairs before anything else in the tag.
+    const unpaired = [...html.matchAll(/<[a-z][a-z0-9-]*\b[^<>]*>/gi)].find(match => (match[0].match(/"/g) || []).length % 2 === 1);
+    if (unpaired) return {topic:'attr_quote', line:lineOf(html, unpaired.index)};
     const textOnly = html.replace(/<[^<>]*>/g, blank);
     const stray = /(^|\n)[ \t]*([.#]?[a-z][\w-]*(?:\s*,\s*[.#]?[a-z][\w-]*)*)\s*\{[^{}<]*:[^{}<]*\}/i.exec(textOnly);
     if (stray) return {topic:'css_in_html', line:lineOf(textOnly, stray.index + stray[1].length)};
@@ -1200,6 +1211,15 @@ window.TFC_PATHWAYS = {
       if (dotted) return {topic:'class_dot_in_html', name:dotted.slice(1), line};
       const typo = [...match[2].matchAll(/(?:^|\s)([a-z][\w-]*)\s*=/gi)].map(item => item[1].toLowerCase()).find(name => name !== 'class' && distance(name, 'class') <= 2 && !['lang', 'alt', 'cols', 'clear', 'cite'].includes(name));
       if (typo) return {topic:'class_attr_typo', attr:typo, line};
+    }
+    // Lesson 8: image tags. The file name belongs in src, inside a tag that stands by itself.
+    const wrapped = /<img\b[^<>]*>[^<]*<\/img\s*>/i.exec(html);
+    if (wrapped) return {topic:'img_content', line:lineOf(html, wrapped.index)};
+    for (const match of html.matchAll(/<img\b([^<>]*)>/gi)) {
+      const line = lineOf(html, match.index), found = attributes(match[1]);
+      if (!('src' in found)) return {topic:'img_no_src', typo:Object.keys(found).find(name => ['scr', 'sorce', 'source', 'srs', 'sr', 'scource', 'href', 'link', 'file', 'image', 'img'].includes(name)) || '', line};
+      const src = found.src.trim();
+      if (!src || (!/:\/\//.test(src) && !/\.[a-z0-9]{2,5}$/i.test(src))) return {topic:'img_filename', src, noext:true, line};
     }
     if (deferUnclosed) return null;
     const stack = [];
@@ -1274,6 +1294,14 @@ window.TFC_PATHWAYS = {
     const html = input.html || '', css = input.css || '';
     const htmlFinding = lintHtml(html, ['tags', 'body'].includes(lessonTopic));
     if (htmlFinding) return htmlFinding;
+    // These two need the student's own words, because the code alone looks complete.
+    const words = `${input.goal || ''} ${input.actual || ''}`.toLowerCase();
+    const image = /<img\b([^<>]*)>/i.exec(html.replace(/<!--[\s\S]*?-->/g, blank));
+    if (image && /\b(?:image|images|picture|pictures|photo|photos|pic|img)\b/.test(words)) {
+      const found = attributes(image[1]), line = lineOf(html, image.index);
+      if (/broken|blank|missing|icon|load|appear|show|display|see|invisible|nothing|work/.test(words)) return {topic:'img_filename', src:found.src, noext:false, line};
+      if (!('alt' in found) && /\balt\b|alternat|descri/.test(words)) return {topic:'img_no_alt', line};
+    }
     if (lessonTopic === 'css_syntax') return null;
     return lintCss(css, html, input.supports || (() => true), hasSize);
   }
@@ -1379,6 +1407,69 @@ window.TFC_PATHWAYS = {
       action:'Change one selector in Web Lab and compare the preview.',
       check:retry => { const name = ['spotlight', 'banner', 'notice'].filter(item => item !== f.name.toLowerCase())[retry ? 1 : 0];
         return {prompt:`An element has class="${name}". Which selector targets that class?`, answers:[`.${name}`], options:[option('correct', `.${name}`), option('wrong', name), option('other', `#${name}`)]}; }
+    }),
+    attr_quote: f => ({
+      label:'Quotation marks in pairs',
+      q:`Look at the opening tag on line ${f.line}. Count the quotation marks around the attribute values. What do you notice?`,
+      options:[option('correct', 'One is missing'), option('wrong', 'They are all in pairs'), option('unsure', 'I’m not sure')], accepted:{'one is missing':'correct', 'missing one':'correct'},
+      nudge:'Every attribute value sits between an opening quotation mark and a closing one. Which value on that line is missing a mark?',
+      scaffold:'Quotation marks come in pairs. When the closing mark is missing, the browser treats everything after it as part of the value, so the rest of the tag is lost.',
+      explicit:`One attribute value on line ${f.line} has no closing quotation mark. Add it at the end of the value, before the next attribute or the >.`,
+      action:'Complete one pair of quotation marks in Web Lab and compare the preview.',
+      check:retry => retry
+        ? {prompt:'Which opening tag is written correctly?', answers:[], options:[option('correct', '<p class="note">'), option('wrong', '<p class="note>'), option('other', '<p class=note">')]}
+        : {prompt:'Which tag is written correctly?', answers:[], options:[option('correct', '<img src="cat.jpg" alt="A cat">'), option('wrong', '<img src="cat.jpg alt="A cat">'), option('other', '<img src=cat.jpg" alt="A cat">')]}
+    }),
+    img_no_src: f => ({
+      label:'The src attribute of an image',
+      q:`Look at the image tag on line ${f.line}. Which attribute tells the browser which image file to show?`,
+      options:[option('correct', 'src'), option('wrong', 'alt'), option('other', 'href'), option('unsure', 'I’m not sure')], accepted:{'src':'correct'},
+      nudge:`Read the attributes inside the image tag on line ${f.line}. Can you find one spelled exactly src?`,
+      nudgeOptions:[option('wrong', 'Yes, it is there'), option('correct', 'No, it is missing or spelled differently'), option('unsure', 'I’m not sure')],
+      scaffold:'An image tag needs a src attribute. Its value is the name of the image file. Without it, the browser has nothing to load.',
+      explicit:f.typo ? `On line ${f.line} the attribute is written “${f.typo}”. Change it to src.` : `The image tag on line ${f.line} has no src attribute. Add src="…" with the name of your image file, copied from the file list in Web Lab.`,
+      action:'Fix the src attribute of one image in Web Lab and compare the preview.',
+      check:retry => retry
+        ? {prompt:'Which attribute holds the name of the image file?', answers:['src'], options:[option('correct', 'src'), option('wrong', 'alt'), option('other', 'class')]}
+        : {prompt:'Which tag shows the file dog.png?', answers:[], options:[option('correct', '<img src="dog.png" alt="A dog">'), option('wrong', '<img alt="dog.png">'), option('other', '<img href="dog.png" alt="A dog">')]}
+    }),
+    img_content: f => ({
+      label:'The image tag stands by itself',
+      q:`Look at the image on line ${f.line}. Does an image tag wrap around content, the way <p> and </p> do?`,
+      options:[option('correct', 'No, it stands by itself'), option('wrong', 'Yes, it needs a closing tag'), option('unsure', 'I’m not sure')], accepted:{'no':'correct'},
+      nudge:'An image tag is self-closing, so nothing goes between an opening and a closing tag. Where does the file name go instead?',
+      nudgeOptions:[option('wrong', 'Between <img> and </img>'), option('correct', 'Inside the tag, in the src attribute'), option('unsure', 'I’m not sure')],
+      scaffold:'The image tag is one of the few tags with no closing tag. Everything the browser needs goes inside the tag as attributes.',
+      explicit:`Remove </img> on line ${f.line} and put the file name inside the tag, in the form <img src="file name" alt="description">.`,
+      action:'Rewrite one image tag in Web Lab and compare the preview.',
+      check:retry => { const file = retry ? 'team.jpg' : 'logo.png', alt = retry ? 'Our team' : 'Club logo';
+        return {prompt:'Which line adds an image correctly?', answers:[], options:[option('correct', `<img src="${file}" alt="${alt}">`), option('wrong', `<img>${file}</img>`), option('other', `<image>${file}</image>`)]}; }
+    }),
+    img_filename: f => ({
+      label:'Matching the image file name',
+      q:`Your image tag on line ${f.line} asks for the file “${f.src}”. Where in Web Lab can you see the real names of your image files?`,
+      options:[option('correct', 'In the file list on the left'), option('wrong', 'In the preview'), option('other', 'In the CSS file'), option('unsure', 'I’m not sure')], accepted:{'the file list':'correct', 'file list':'correct', 'on the left':'correct', 'the left panel':'correct'},
+      nudge:'Compare the name in your src with the name in the file list, one character at a time. Check capital letters and the ending, such as .jpg or .png. Do they match exactly?',
+      nudgeOptions:[option('correct', 'No, something is different'), option('different', 'Yes, they match exactly'), option('unsure', 'I’m not sure')],
+      scaffold:'The src value must be the file’s exact name, including capital letters and the ending after the dot. A name that is close still points to a file that does not exist.',
+      explicit:f.noext ? `“${f.src}” has no ending such as .jpg or .png. Copy the full file name from the file list into your src.` : `Copy the file name from the file list and paste it into the src on line ${f.line}, so that every character matches.`,
+      action:'Correct the file name in one src in Web Lab and compare the preview.',
+      check:retry => retry
+        ? {prompt:'The file list shows team-photo.png. Which tag shows it?', answers:[], options:[option('correct', '<img src="team-photo.png" alt="Our team">'), option('wrong', '<img src="team photo.png" alt="Our team">'), option('other', '<img src="team-photo.jpg" alt="Our team">')]}
+        : {prompt:'The file list shows Puppy.jpg. Which tag shows it?', answers:[], options:[option('correct', '<img src="Puppy.jpg" alt="A puppy">'), option('wrong', '<img src="puppy.jpg" alt="A puppy">'), option('other', '<img src="Puppy" alt="A puppy">')]}
+    }),
+    img_no_alt: f => ({
+      label:'Describing an image with alt text',
+      q:`Your image tag on line ${f.line} has a src. Which attribute describes the image in words?`,
+      options:[option('correct', 'alt'), option('wrong', 'src'), option('other', 'class'), option('unsure', 'I’m not sure')], accepted:{'alt':'correct', 'alt text':'correct'},
+      nudge:'Some people cannot see the image, and sometimes an image fails to load. What do they get instead?',
+      nudgeOptions:[option('wrong', 'The file name'), option('correct', 'The description in the alt attribute'), option('unsure', 'I’m not sure')],
+      scaffold:'The alt attribute holds a short description of the image. Screen readers read it aloud, and the browser shows it when the image cannot load.',
+      explicit:`Add alt="…" to the image tag on line ${f.line}, with a few words that describe what the image shows.`,
+      action:'Add alt text to one image in Web Lab and check the tag again.',
+      check:retry => retry
+        ? {prompt:'Which alt text best describes a photo of a cat asleep on a couch?', answers:[], options:[option('correct', 'alt="A cat asleep on a couch"'), option('wrong', 'alt="picture"'), option('other', 'alt="cat.png"')]}
+        : {prompt:'Which alt text best describes a photo of a dog catching a ball?', answers:[], options:[option('correct', 'alt="A dog catching a red ball"'), option('wrong', 'alt="image"'), option('other', 'alt="dog.jpg"')]}
     }),
     class_dot_in_html: f => ({
       label:'Class names in HTML and CSS',
