@@ -9,9 +9,26 @@ const context = vm.createContext({window, console});
 // Every script except the two that need a page (the controller and the screen manager).
 scripts.filter(code => !/document\.getElementById/.test(code)).forEach(code => vm.runInContext(code, context));
 
-// Stand-in for the browser's CSS.supports(property, value).
-const PROPERTIES = new Set('color background background-color font font-size font-family font-weight font-style text-align text-decoration line-height letter-spacing width height margin padding border border-radius display float'.split(' '));
-const supports = (property, value) => PROPERTIES.has(property) && !(property === 'font-size' && /^[\d.]+$/.test(String(value).trim()));
+// Stand-in for the browser's CSS.supports(property, value): a known property with a value it accepts.
+const COLOURS = 'red blue green yellow orange purple pink black white gray grey gold brown teal navy lightblue lightgreen lightgray'.split(' ');
+const isColour = value => COLOURS.includes(value) || /^#[0-9a-f]{3,8}$/i.test(value) || /^rgba?\(/.test(value);
+const isLength = value => value.split(/\s+/).every(part => part === '0' || part === 'auto' || /^-?\d*\.?\d+(px|em|rem|%|vw|vh)$/.test(part));
+const keywords = list => value => list.split(' ').includes(value);
+const VALUES = {
+  'color':isColour, 'background-color':isColour, 'border-color':isColour, 'background':() => true,
+  'font':() => true, 'font-family':() => true, 'font-weight':() => true, 'font-style':() => true, 'line-height':() => true, 'letter-spacing':() => true,
+  'font-size':value => /^\d*\.?\d+(px|em|rem|%)$/.test(value) || keywords('small medium large x-large')(value),
+  'text-align':keywords('left right center justify'), 'text-decoration':keywords('none underline overline line-through'),
+  'width':isLength, 'height':isLength, 'margin':isLength, 'padding':isLength, 'border-width':isLength, 'border-radius':isLength,
+  'border':() => true, 'border-style':keywords('none solid dashed dotted double groove ridge inset outset'),
+  'float':keywords('left right none'), 'display':keywords('block inline inline-block flex inline-flex none'),
+  'flex-direction':keywords('row row-reverse column column-reverse'), 'flex-wrap':keywords('nowrap wrap wrap-reverse'),
+  'justify-content':keywords('flex-start flex-end center space-between space-around space-evenly'),
+  'align-items':keywords('flex-start flex-end center stretch baseline'), 'align-content':keywords('flex-start flex-end center stretch space-between space-around'),
+  'align-self':keywords('auto flex-start flex-end center stretch baseline'),
+  'order':value => /^-?\d+$/.test(value), 'flex-grow':value => /^\d*\.?\d+$/.test(value), 'flex-shrink':value => /^\d*\.?\d+$/.test(value)
+};
+const supports = (property, value) => property in VALUES && (value === 'inherit' || VALUES[property](String(value).trim().toLowerCase()));
 
 const route = item => window.TFC_ROUTER.route({goal:item.goal, actual:item.actual, html:item.html || '', css:item.css || '', lesson:item.lesson, supports});
 let failed = 0;

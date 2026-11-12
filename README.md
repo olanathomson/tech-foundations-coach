@@ -16,7 +16,7 @@ The page makes no network requests and stores nothing. Session notes clear on re
 
 ## Limits
 
-The Coach uses scripted questions and pattern checks. It does not run the student's code, it does not connect to an AI model, and it covers Code.org lessons 2, 3, 5 and 6 only.
+The Coach uses scripted questions and pattern checks. It does not run the student's code, it does not connect to an AI model, and it covers the coding lessons from 2 to 14 of the Code.org Web Development unit.
 
 ## Tests
 
