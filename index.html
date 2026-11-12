@@ -28,6 +28,9 @@
   FIX 12 UI refresh: each move has its own colour and the page follows the active move; a connected
          step track; conversation bubbles; buttons that press; the Lexend typeface, embedded so the
          page still makes no network requests. Only the style block and three labels changed.
+  FIX 13 Lesson 11 (CSS Classes) added to the lesson menu, with four class checks: a dot typed into the HTML
+         class name, a misspelled class attribute, class names that do not match, and a class rule that no
+         pasted element uses. These join the existing checks for a missing dot and an element selector.
   FIX 9  Clipboard: no code in this file writes to the clipboard; the behaviour comes from the
          Google Sites embed wrapper, so no change is needed here.
 -->
@@ -334,7 +337,7 @@ body[data-screen=challenge] .screen-actions{margin-top:20px}
 <form id="intakeForm" novalidate>
 <section id="challengeScreen" class="screen panel" aria-labelledby="challengeTitle">
 <h1 id="challengeTitle" tabindex="-1">What’s going on?</h1><p class="screen-intro">Tell me what you wanted to happen and what went wrong.</p>
-<div class="lesson-field"><label for="lessonSelect">Which lesson?</label><select id="lessonSelect"><option value="auto">Not sure / my own project</option><option value="2" selected>2 · Intro to HTML</option><option value="3">3 · Headings and Lists</option><option value="5">5 · HTML Web Page project</option><option value="6">6 · Styling Text with CSS</option></select></div>
+<div class="lesson-field"><label for="lessonSelect">Which lesson?</label><select id="lessonSelect"><option value="auto">Not sure / my own project</option><option value="2" selected>2 · Intro to HTML</option><option value="3">3 · Headings and Lists</option><option value="5">5 · HTML Web Page project</option><option value="6">6 · Styling Text with CSS</option><option value="11">11 · CSS Classes</option></select></div>
 <div id="practiceBanner" class="practice-banner"><span><strong>Practice: my paragraphs run together</strong><small>We’ve filled one in for you.</small></span><button type="button" id="clearBtn" class="text-button">Use my own code <span aria-hidden="true">→</span></button></div>
 <div class="field"><label for="goal">What are you trying to do?</label><textarea id="goal" rows="2" required placeholder="For example: Make one paragraph red">Show two separate paragraphs</textarea></div>
 <div class="field"><label for="actual">What happens instead?</label><textarea id="actual" rows="2" required placeholder="For example: Every paragraph turns red">I pressed Enter, but the text stays on one line</textarea></div>
@@ -1167,6 +1170,17 @@ window.TFC_PATHWAYS = {
   // Blanking keeps every character position, so line numbers still match the student's editor.
   const blank = text => text.replace(/[^\n]/g, ' ');
   const lineOf = (text, index) => text.slice(0, index).split('\n').length;
+  // Edit distance (Levenshtein), O(a*b) on two short names. It finds the closest name when a student's spelling is nearly right.
+  function distance(a, b) {
+    let row = Array.from({length:b.length + 1}, (_, i) => i);
+    for (let i = 1; i <= a.length; i++) {
+      const next = [i];
+      for (let j = 1; j <= b.length; j++) next[j] = Math.min(row[j] + 1, next[j - 1] + 1, row[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      row = next;
+    }
+    return row[b.length];
+  }
+  const classNames = attrs => (/(?:^|\s)class\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(attrs) || []).slice(1).filter(Boolean).join(' ').split(/\s+/).filter(Boolean);
   const tagHint = name => /^h[il]$/.test(name) ? 'h1' : ['paragraph', 'para'].includes(name) ? 'p' : name === 'bold' ? 'strong' : name === 'list' ? 'ul or ol' : '';
 
   function lintHtml(source, deferUnclosed) {
@@ -1179,6 +1193,14 @@ window.TFC_PATHWAYS = {
     const textOnly = html.replace(/<[^<>]*>/g, blank);
     const stray = /(^|\n)[ \t]*([.#]?[a-z][\w-]*(?:\s*,\s*[.#]?[a-z][\w-]*)*)\s*\{[^{}<]*:[^{}<]*\}/i.exec(textOnly);
     if (stray) return {topic:'css_in_html', line:lineOf(textOnly, stray.index + stray[1].length)};
+    // Lesson 11: class attributes. A dot typed into the HTML name, or a misspelled attribute name.
+    for (const match of html.matchAll(/<([a-z][a-z0-9-]*)\b([^<>]*)>/gi)) {
+      const line = lineOf(html, match.index);
+      const dotted = classNames(match[2]).find(name => name.startsWith('.') && name.length > 1);
+      if (dotted) return {topic:'class_dot_in_html', name:dotted.slice(1), line};
+      const typo = [...match[2].matchAll(/(?:^|\s)([a-z][\w-]*)\s*=/gi)].map(item => item[1].toLowerCase()).find(name => name !== 'class' && distance(name, 'class') <= 2 && !['lang', 'alt', 'cols', 'clear', 'cite'].includes(name));
+      if (typo) return {topic:'class_attr_typo', attr:typo, line};
+    }
     if (deferUnclosed) return null;
     const stack = [];
     const unclosed = item => ({topic:'unclosed', tag:item.name, line:lineOf(html, item.index)});
@@ -1212,7 +1234,7 @@ window.TFC_PATHWAYS = {
     const html = htmlSource.replace(/<!--[\s\S]*?-->/g, blank);
     const elements = [...html.matchAll(/<([a-z][a-z0-9-]*)\b([^<>]*)>/gi)].map(match => ({name:match[1].toLowerCase(), attrs:match[2]}));
     const present = [...new Set(elements.map(item => item.name))].filter(name => !['html', 'head', 'body', 'title', 'meta', 'link', 'style'].includes(name));
-    const classes = new Set(elements.flatMap(item => (/(?:^|\s)class\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(item.attrs) || []).slice(1).filter(Boolean).join(' ').split(/\s+/)).filter(Boolean));
+    const classes = new Set(elements.flatMap(item => classNames(item.attrs)));
     const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(match => {
       const lead = match[1].length - match[1].trimStart().length;
       return {selector:match[1].trim(), body:match[2], line:lineOf(css, match.index + lead), bodyStart:match.index + match[1].length + 1};
@@ -1231,12 +1253,20 @@ window.TFC_PATHWAYS = {
         const name = /^\s*([a-z_][\w -]*?)\s*:/i.exec(chunk)?.[1].toLowerCase();
         if (name && !skipProperties && (/\s/.test(name) || !supports(name, 'inherit'))) keep('unknown_property', {prop:name, line:lineOf(css, start)});
       }
+      // Lesson 11: a class selector whose name is not on any pasted element.
+      const classSelector = /^(?:[a-z][a-z0-9]*)?\.([a-z_][\w-]*)$/i.exec(rule.selector);
+      if (classSelector && present.length && !classes.has(classSelector[1])) {
+        const wanted = classSelector[1];
+        const near = [...classes].map(name => ({name, gap:name.toLowerCase() === wanted.toLowerCase() ? 0 : distance(name.toLowerCase(), wanted.toLowerCase())})).sort((a, b) => a.gap - b.gap)[0];
+        if (near && near.gap <= 2) keep('class_mismatch', {css:wanted, html:near.name, line:rule.line});
+        else if (!classes.size) keep('class_not_applied', {css:wanted, line:rule.line});
+      }
       if (!present.length || !/^[a-z][\w-]*$/i.test(rule.selector)) continue;
       const selector = rule.selector.toLowerCase();
       if (classes.has(rule.selector) && !present.includes(selector)) keep('class_dot', {name:rule.selector, line:rule.line});
       else if (KNOWN_TAGS.has(selector) && !['html', 'body', 'head'].includes(selector) && !present.includes(selector)) keep('selector_mismatch', {tag:selector, present:present.slice(0, 3), line:rule.line});
     }
-    return ['selector_brackets', 'missing_semicolon', 'unknown_property', 'class_dot', 'selector_mismatch'].map(topic => findings[topic]).find(Boolean) || null;
+    return ['selector_brackets', 'missing_semicolon', 'unknown_property', 'class_dot', 'class_mismatch', 'class_not_applied', 'selector_mismatch'].map(topic => findings[topic]).find(Boolean) || null;
   }
 
   // lessonTopic and hasSize come from the existing coaches, so their specific detections keep priority.
@@ -1349,6 +1379,55 @@ window.TFC_PATHWAYS = {
       action:'Change one selector in Web Lab and compare the preview.',
       check:retry => { const name = ['spotlight', 'banner', 'notice'].filter(item => item !== f.name.toLowerCase())[retry ? 1 : 0];
         return {prompt:`An element has class="${name}". Which selector targets that class?`, answers:[`.${name}`], options:[option('correct', `.${name}`), option('wrong', name), option('other', `#${name}`)]}; }
+    }),
+    class_dot_in_html: f => ({
+      label:'Class names in HTML and CSS',
+      q:`Look at the class attribute on line ${f.line} of your HTML. Where does the dot belong?`,
+      options:[option('correct', 'Only in the CSS selector'), option('wrong', 'In the HTML and the CSS'), option('other', 'Only in the HTML'), option('unsure', 'I’m not sure')], accepted:{'css':'correct', 'in the css':'correct', 'only in the css':'correct', 'the css selector':'correct'},
+      nudge:'The dot tells CSS that the word after it is a class name. Does HTML need that signal inside a class attribute?',
+      nudgeOptions:[option('wrong', 'Yes, HTML needs the dot too'), option('correct', 'No, the attribute already says it is a class'), option('unsure', 'I’m not sure')],
+      scaffold:'In HTML the class attribute holds the plain name. In CSS a dot in front of that name makes a class selector. A dot typed into the HTML makes the two names different.',
+      explicit:`Remove the dot from the class name on line ${f.line} of your HTML, so that it reads class="${f.name}". Keep the dot in your CSS selector.`,
+      action:'Change one class name in Web Lab and compare the preview.',
+      check:retry => { const name = retry ? 'badge' : 'alert';
+        return {prompt:'Which pair works together?', answers:[], options:[option('correct', `HTML: class="${name}"   CSS: .${name} { }`), option('wrong', `HTML: class=".${name}"   CSS: .${name} { }`), option('other', `HTML: class="${name}"   CSS: ${name} { }`)]}; }
+    }),
+    class_attr_typo: f => ({
+      label:'Spelling the class attribute',
+      q:`Look at the opening tag on line ${f.line}. Which attribute gives an element a class?`,
+      options:[option('correct', 'class'), option('wrong', 'style'), option('other', 'name'), option('unsure', 'I’m not sure')], accepted:{'class':'correct'},
+      nudge:`Attribute names have one exact spelling. Read the attribute on line ${f.line} one letter at a time. What do you find?`,
+      scaffold:'The browser ignores an attribute name it does not recognise, and it shows no error. The element then has no class for CSS to find.',
+      explicit:`On line ${f.line} the attribute is written “${f.attr}”. Change it to class.`,
+      action:'Correct one attribute name in Web Lab and compare the preview.',
+      check:retry => retry
+        ? {prompt:'Which opening tag gives the heading the class lead?', answers:['<h2 class="lead">'], options:[option('correct', '<h2 class="lead">'), option('wrong', '<h2 classs="lead">'), option('other', '<h2 .lead>')]}
+        : {prompt:'Which opening tag gives the paragraph the class intro?', answers:['<p class="intro">'], options:[option('correct', '<p class="intro">'), option('wrong', '<p clas="intro">'), option('other', '<p .intro>')]}
+    }),
+    class_mismatch: f => ({
+      label:'Matching class names exactly',
+      q:`Your CSS selects the class ${f.css} on line ${f.line}. Find the class name in your HTML. Do the two names match exactly, letter for letter?`,
+      options:[option('correct', 'No, they are different'), option('wrong', 'Yes, they match'), option('unsure', 'I’m not sure')], accepted:{'no':'correct'},
+      nudge:'Class names must match exactly, including capital letters and hyphens. Compare the two names one character at a time. What is different?',
+      scaffold:'CSS styles an element only when the selector’s class name is identical to the name in the class attribute. A capital letter, a missing letter, or an extra hyphen makes it a different name.',
+      explicit:`Your HTML says class="${f.html}" and your CSS says .${f.css}. Change one of them so that both use the same name.`,
+      action:'Make one class name match in Web Lab and compare the preview.',
+      check:retry => retry
+        ? {prompt:'An element has class="sideNote". Which selector styles it?', answers:[], options:[option('correct', '.sideNote'), option('wrong', '.sidenote'), option('other', '.side-note')]}
+        : {prompt:'An element has class="top-story". Which selector styles it?', answers:[], options:[option('correct', '.top-story'), option('wrong', '.topstory'), option('other', '.Top-Story')]}
+    }),
+    class_not_applied: f => ({
+      label:'Giving an element its class',
+      q:`Your CSS has a rule for the class ${f.css} on line ${f.line}. Which element in the HTML you pasted has that class?`,
+      options:[option('correct', 'None of them yet'), option('different', 'One in my full page'), option('unsure', 'I’m not sure')], accepted:{'none':'correct', 'none of them':'correct'},
+      nudge:'A class rule only styles the elements that have been given that class. How does an HTML element get a class?',
+      nudgeOptions:[option('wrong', 'By writing the class name in the CSS only'), option('correct', 'With a class attribute in its opening tag'), option('other', 'With a dot before the tag name'), option('unsure', 'I’m not sure')],
+      scaffold:'A class has two halves: the CSS rule that describes the style, and a class attribute in the opening tag of each element that should use it.',
+      explicit:`Add class="${f.css}" inside the opening tag of each element you want styled, such as <p class="${f.css}">.`,
+      action:'Give one element the class in Web Lab and compare the preview.',
+      check:retry => retry
+        ? {prompt:'A stylesheet has .tip { color: green; }. Which heading turns green?', answers:[], options:[option('correct', '<h2 class="tip">Save often</h2>'), option('wrong', '<h2>tip: Save often</h2>'), option('other', '<tip>Save often</tip>')]}
+        : {prompt:'A stylesheet has .note { color: blue; }. Which paragraph turns blue?', answers:[], options:[option('correct', '<p class="note">Bring a pencil.</p>'), option('wrong', '<p>note: Bring a pencil.</p>'), option('other', '<note>Bring a pencil.</note>')]}
     }),
     selector_mismatch: f => ({
       label:'Matching a selector to an element',

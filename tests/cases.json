@@ -284,5 +284,85 @@
   "html": "",
   "css": "",
   "expect": "scripted:unclassified"
+ },
+ {
+  "lesson": "11",
+  "name": "Dot typed inside the HTML class name",
+  "cause": "class=\".featured\"",
+  "goal": "Make the featured paragraph gold",
+  "actual": "Nothing changes",
+  "html": "<p class=\".featured\">Player of the week</p>\n<p>Other news</p>",
+  "css": ".featured {\n  color: gold;\n}",
+  "expect": "code-check:class_dot_in_html"
+ },
+ {
+  "lesson": "11",
+  "name": "Class names differ by a capital letter",
+  "cause": "class=\"Warning\" vs .warning",
+  "goal": "Make the warning red",
+  "actual": "It stays black",
+  "html": "<p class=\"Warning\">Wet floor</p>",
+  "css": ".warning {\n  color: red;\n}",
+  "expect": "code-check:class_mismatch"
+ },
+ {
+  "lesson": "11",
+  "name": "Class names differ by a missing letter",
+  "cause": "class=\"highlight\" vs .highligt",
+  "goal": "Highlight my title",
+  "actual": "No highlight shows",
+  "html": "<h2 class=\"highlight\">Scores</h2>",
+  "css": ".highligt {\n  color: purple;\n}",
+  "expect": "code-check:class_mismatch"
+ },
+ {
+  "lesson": "11",
+  "name": "Class rule written but never applied",
+  "cause": "no class attribute",
+  "goal": "Make one heading blue",
+  "actual": "Neither heading is blue",
+  "html": "<h2>Home</h2>\n<h2>Away</h2>",
+  "css": ".home {\n  color: blue;\n}",
+  "expect": "code-check:class_not_applied"
+ },
+ {
+  "lesson": "11",
+  "name": "Misspelled class attribute",
+  "cause": "clas=",
+  "goal": "Make the tip green",
+  "actual": "The tip is not green",
+  "html": "<p clas=\"tip\">Save often</p>",
+  "css": ".tip {\n  color: green;\n}",
+  "expect": "code-check:class_attr_typo"
+ },
+ {
+  "lesson": "11",
+  "name": "Class selector missing its dot",
+  "cause": "tip { } without dot",
+  "goal": "Make the tip green",
+  "actual": "Nothing changes",
+  "html": "<p class=\"tip\">Save often</p>",
+  "css": "tip {\n  color: green;\n}",
+  "expect": "code-check:class_dot"
+ },
+ {
+  "lesson": "11",
+  "name": "Element selector styles every paragraph",
+  "cause": "needs class selector",
+  "goal": "Make only the warning paragraph red",
+  "actual": "All the paragraphs turn red",
+  "html": "<p class=\"warning\">Careful!</p>\n<p>Normal text</p>",
+  "css": "p {\n  color: red;\n}",
+  "expect": "class:"
+ },
+ {
+  "lesson": "11",
+  "name": "Correct class code, vague report",
+  "cause": "nothing wrong in snippet",
+  "goal": "make it look better",
+  "actual": "it looks boring",
+  "html": "<p class=\"note\">Hi</p>",
+  "css": ".note {\n  color: blue;\n}\np.note { text-align: center; }",
+  "expect": "scripted:unclassified"
  }
 ]
